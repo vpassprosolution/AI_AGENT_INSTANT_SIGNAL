@@ -2,6 +2,7 @@ import requests
 import yfinance as yf
 import technical_analysis  # Import technical functions
 from flask import Flask, jsonify
+import os
 
 app = Flask(__name__)
 
@@ -91,5 +92,9 @@ def get_signal(selected_instrument):
 
     return jsonify({"instrument": selected_instrument, "signal": trade_signal})
 
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))  # Read PORT from environment variables
+    app.run(host='0.0.0.0', port=port)
+
