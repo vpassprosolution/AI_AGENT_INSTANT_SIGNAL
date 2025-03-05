@@ -13,22 +13,18 @@ def home():
 
 # Function to fetch real-time price for each instrument
 def get_crypto_price(symbol):
-    url = f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
-    headers = {"X-CMC_PRO_API_KEY": "your_coinmarketcap_api_key"}  # Make sure this is correct
-    params = {"symbol": symbol, "convert": "USD"}
+    # Convert symbol to Yahoo Finance format
+    symbol_map = {"BTC": "BTC-USD", "ETH": "ETH-USD"}
+    yahoo_symbol = symbol_map.get(symbol, None)
 
-    response = requests.get(url, headers=headers, params=params)
-    
-    # Print full API response for debugging
-    print(f"🔍 Crypto API Response for {symbol}: {response.json()}")
+    if yahoo_symbol:
+        data = yf.Ticker(yahoo_symbol).history(period="1d")
+        if not data.empty:
+            return round(data["Close"].iloc[-1], 2)
 
-    data = response.json()
-    
-    if "data" in data and symbol in data["data"]:
-        return round(data["data"][symbol]["quote"]["USD"]["price"], 2)
-    
-    print(f"❌ No price found for {symbol}")
+    print(f"❌ No price found for {symbol} using Yahoo Finance")
     return None
+
 
 
 
