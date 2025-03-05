@@ -14,20 +14,22 @@ def home():
 # Function to fetch real-time price for each instrument
 def get_crypto_price(symbol):
     url = f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
-    headers = {"X-CMC_PRO_API_KEY": "your_coinmarketcap_api_key"}
+    headers = {"X-CMC_PRO_API_KEY": "your_coinmarketcap_api_key"}  # Make sure this is correct
     params = {"symbol": symbol, "convert": "USD"}
 
     response = requests.get(url, headers=headers, params=params)
+    
+    # Print full API response for debugging
+    print(f"🔍 Crypto API Response for {symbol}: {response.json()}")
+
     data = response.json()
     
-    # Debugging: Print API response
-    print(f"🔍 Crypto API Response for {symbol}: {data}")
-
     if "data" in data and symbol in data["data"]:
         return round(data["data"][symbol]["quote"]["USD"]["price"], 2)
     
     print(f"❌ No price found for {symbol}")
     return None
+
 
 
 def get_forex_price(pair):
