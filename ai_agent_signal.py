@@ -5,6 +5,11 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
+# Home Route to check if API is running
+@app.route('/')
+def home():
+    return jsonify({"message": "AI Agent Instant Signal API is running!"})
+
 # Function to fetch real-time price for each instrument
 def get_crypto_price(symbol):
     url = f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
@@ -83,7 +88,8 @@ def generate_trade_signal(selected_instrument):
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     trade_signal = generate_trade_signal(selected_instrument)
-    return jsonify({"signal": trade_signal})
+
+    return jsonify({"instrument": selected_instrument, "signal": trade_signal})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
