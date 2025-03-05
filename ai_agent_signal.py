@@ -20,9 +20,15 @@ def get_crypto_price(symbol):
     response = requests.get(url, headers=headers, params=params)
     data = response.json()
     
+    # Debugging: Print API response
+    print(f"🔍 Crypto API Response for {symbol}: {data}")
+
     if "data" in data and symbol in data["data"]:
         return round(data["data"][symbol]["quote"]["USD"]["price"], 2)
+    
+    print(f"❌ No price found for {symbol}")
     return None
+
 
 def get_forex_price(pair):
     symbol = f"{pair[:3]}{pair[3:]}=X"
