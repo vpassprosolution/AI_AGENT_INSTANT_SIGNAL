@@ -49,31 +49,42 @@ def get_gold_price():
         return round(data["rates"]["USDXAU"], 2)
     return None
 
-# Function to generate trade signal (calls `technical_analysis.py`)
 def generate_trade_signal(selected_instrument):
     price = None
+
     if selected_instrument == "BTC":
         price = get_crypto_price("BTC")
+        print(f"✅ BTC Price: {price}")  # Debugging log
     elif selected_instrument == "ETH":
         price = get_crypto_price("ETH")
+        print(f"✅ ETH Price: {price}")  # Debugging log
     elif selected_instrument == "EURUSD":
         price = get_forex_price("EURUSD")
+        print(f"✅ EUR/USD Price: {price}")  # Debugging log
     elif selected_instrument == "GBPUSD":
         price = get_forex_price("GBPUSD")
+        print(f"✅ GBP/USD Price: {price}")  # Debugging log
     elif selected_instrument == "DJI":
         price = get_stock_index_price("^DJI")
+        print(f"✅ Dow Jones Price: {price}")  # Debugging log
     elif selected_instrument == "IXIC":
         price = get_stock_index_price("^IXIC")
+        print(f"✅ Nasdaq Price: {price}")  # Debugging log
     elif selected_instrument == "XAU":
         price = get_gold_price()
+        print(f"✅ Gold Price: {price}")  # Debugging log
     else:
+        print("⚠️ Invalid instrument selected.")
         return "⚠️ No valid instrument selected."
 
     if price is None:
+        print(f"❌ No valid data available for {selected_instrument}")
         return "⚠️ No valid data available."
 
-    # Example price data (using real-time price in a dummy dataset)
-    test_prices = [price] * 30
+    return f"✅ Successfully fetched {selected_instrument} price: {price}"
+
+
+    
 
     # Call technical analysis functions
     rsi = technical_analysis.calculate_rsi(test_prices)
