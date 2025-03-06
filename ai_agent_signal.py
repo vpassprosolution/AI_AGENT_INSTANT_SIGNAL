@@ -178,20 +178,21 @@ def determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band
     print(f"🔼 MACD Cross Up: {macd_cross_up}, 🔽 MACD Cross Down: {macd_cross_down}")
     print(f"📉 Price Below Lower Band: {price_below_lower_band}, 📈 Price Above Upper Band: {price_above_upper_band}")
 
+    # Aggressive and high-end signals
     if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):  
-        return "🚀 The market is heating up! 🔥 It's time to **BUY now** before the move starts!"
+        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n⚡ **Now the market is heating up!**\n📈 **Strong Bullish Pressure Detected!**\n🚀 **BUY NOW!** Don't miss this move – it's time to take action! 💰🔥"
 
     elif is_overbought and macd_cross_down:
-        return "⚠️ Warning! Overbought conditions detected. 📉 **SELL now** before it's too late!"
+        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n⚡ **Now the market is looking dangerous!**\n📉 **Overbought conditions detected!**\n⚠️ **SELL NOW!** Secure your profits before the market reverses! 💥💰"
 
     elif macd_cross_up and price < upper_band:
-        return "📈 Momentum is shifting upwards! **A bullish crossover detected** – buyers are stepping in!"
+        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n📈 **Momentum is shifting upwards!**\n**A bullish crossover detected – buyers are stepping in!**\n💰 **BUY NOW!** Ride the wave before it’s too late! 🚀"
 
     elif macd_cross_down and price > lower_band:
-        return "📉 Bearish pressure is building! **A downward move is forming** – caution is advised!"
+        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n📉 **Bearish pressure is increasing!**\n⚠️ **SELL NOW!** Don’t get caught in the drop – act fast! 💥💰"
 
     elif neutral_zone:
-        return "🧐 The market is in a tricky zone. No action needed for now – **HOLD your position.**"
+        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Market conditions are neutral.**\n🧐 **No clear trend – HOLD your position!**\n⏳ **Wait for confirmation before entering a trade.**"
 
     return "⚠️ No strong trade signal detected. Stay alert for market changes."
 
