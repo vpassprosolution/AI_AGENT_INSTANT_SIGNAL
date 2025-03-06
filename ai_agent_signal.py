@@ -41,16 +41,30 @@ def get_stock_index_price(symbol):
         return round(data["Close"].iloc[-1], 2)
     return None
 
+import requests
+
 def get_gold_price():
-    url = "https://metals-api.com/api/latest?access_key=your_metal_api_key&base=USD&symbols=XAU"
+    url = "https://metals-api.com/api/latest?access_key=cflqymfx6mzfe1pw3p4zgy13w9gj12z4aavokqd5xw4p8xeplzlwyh64fvrv&base=USD&symbols=XAU"
     response = requests.get(url)
     data = response.json()
-    
-    if "rates" in data and "USDXAU" in data["rates"]:
-        return round(data["rates"]["USDXAU"], 2)
+
+    print("🔍 Metal API Response:", data)  
+
+  
+    if "rates" in data:
+        if "USDXAU" in data["rates"]:  
+            return round(data["rates"]["USDXAU"], 2)  
+        elif "XAU" in data["rates"]:  
+            return round(1 / data["rates"]["XAU"], 2)  
+
+    print("⚠️ No Gold price found in API response!")
     return None
 
+
+
 def generate_trade_signal(selected_instrument):
+    print(f"📡 Receiving Instrument: {selected_instrument}")  # ✅ Debug log
+
     price = None
 
     if selected_instrument == "BTC":
@@ -65,26 +79,20 @@ def generate_trade_signal(selected_instrument):
         price = get_stock_index_price("^DJI")
     elif selected_instrument == "IXIC":
         price = get_stock_index_price("^IXIC")
-    elif selected_instrument in ["XAU", "XAUUSD"]:  # ✅ Fixed: Recognize both XAU & XAUUSD
+    elif selected_instrument in ["XAU", "XAUUSD"]:  # ✅ Ensure "XAUUSD" is correctly mapped
+        print("🟡 Gold selected, fetching price...")  # ✅ Debug
         price = get_gold_price()
-    else:
-        return "⚠️ No valid instrument selected."
+        print(f"✅ Gold Price Fetched: {price}")  # ✅ Debug
 
     if price is None:
+        print(f"⚠️ No price found for {selected_instrument}!")  # ✅ Debug
         return "⚠️ No valid data available."
 
-    # Create dummy historical price data (30 entries) for technical analysis
-    test_prices = [price] * 30
+    print(f"✅ Final Price Used in Signal Calculation: {price}")  # ✅ Debug
 
-    # Call technical analysis functions
-    rsi = technical_analysis.calculate_rsi(test_prices)
-    macd, signal_line = technical_analysis.calculate_macd(test_prices)
-    upper_band, middle_band, lower_band = technical_analysis.calculate_bollinger_bands(test_prices)
+    # ✅ Now passing Gold price correctly to technical indicators
+    return f"Current {selected_instrument} price: {price}"
 
-    # ✅ Generate trade signal based on indicators
-    trade_signal = technical_analysis.generate_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band)
-
-    return trade_signal  # ✅ Correctly returns the final trade signal
 
 
 # API endpoint for trade signal
