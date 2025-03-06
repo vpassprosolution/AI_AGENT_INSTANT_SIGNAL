@@ -3,6 +3,7 @@ import yfinance as yf
 import technical_analysis  # Import technical functions
 from flask import Flask, jsonify
 import os
+import numpy as np
 
 app = Flask(__name__)
 
@@ -13,7 +14,6 @@ def home():
 
 # Function to fetch real-time price for each instrument
 def get_crypto_price(symbol):
-    # Convert symbol to Yahoo Finance format
     symbol_map = {"BTC": "BTC-USD", "ETH": "ETH-USD"}
     yahoo_symbol = symbol_map.get(symbol, None)
 
@@ -41,8 +41,6 @@ def get_stock_index_price(symbol):
         return round(data["Close"].iloc[-1], 2)
     return None
 
-import requests
-
 def get_gold_price():
     url = "https://metals-api.com/api/latest?access_key=cflqymfx6mzfe1pw3p4zgy13w9gj12z4aavokqd5xw4p8xeplzlwyh64fvrv&base=USD&symbols=XAU"
     response = requests.get(url)
@@ -50,7 +48,6 @@ def get_gold_price():
 
     print("🔍 Metal API Response:", data)  
 
-  
     if "rates" in data:
         if "USDXAU" in data["rates"]:  
             return round(data["rates"]["USDXAU"], 2)  
@@ -60,11 +57,7 @@ def get_gold_price():
     print("⚠️ No Gold price found in API response!")
     return None
 
-
-
 def generate_trade_signal(selected_instrument):
-    print(f"📡 Receiving Instrument: {selected_instrument}")  # ✅ Debug log
-
     price = None
 
     if selected_instrument == "BTC":
@@ -79,19 +72,43 @@ def generate_trade_signal(selected_instrument):
         price = get_stock_index_price("^DJI")
     elif selected_instrument == "IXIC":
         price = get_stock_index_price("^IXIC")
-    elif selected_instrument in ["XAU", "XAUUSD"]:  # ✅ Ensure "XAUUSD" is correctly mapped
-        print("🟡 Gold selected, fetching price...")  # ✅ Debug
+    elif selected_instrument in ["XAU", "XAUUSD"]:
         price = get_gold_price()
-        print(f"✅ Gold Price Fetched: {price}")  # ✅ Debug
 
     if price is None:
-        print(f"⚠️ No price found for {selected_instrument}!")  # ✅ Debug
         return "⚠️ No valid data available."
 
-    print(f"✅ Final Price Used in Signal Calculation: {price}")  # ✅ Debug
+    test_prices = [price] * 30  
 
-    # ✅ Now passing Gold price correctly to technical indicators
-    return f"Current {selected_instrument} price: {price}"
+    rsi = technical_analysis.calculate_rsi(test_prices)
+    macd, signal_line = technical_analysis.calculate_macd(test_prices)
+    upper_band, middle_band, lower_band = technical_analysis.calculate_bollinger_bands(test_prices)
+
+    is_oversold = rsi < 30  
+    is_overbought = rsi > 70  
+    macd_cross_up = macd > signal_line  
+    macd_cross_down = macd < signal_line  
+    price_below_lower_band = price < lower_band  
+    price_above_upper_band = price > upper_band  
+    neutral_zone = 40 <= rsi <= 60  
+
+    if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):  
+        return "🚀 The market is heating up! 🔥 It's time to take action – **BUY now** before the move starts!"
+
+    elif is_overbought and macd_cross_down:
+        return "⚠️ Warning! Overbought conditions detected. 📉 **SELL now** before it's too late!"
+
+    elif macd_cross_up and price < upper_band:
+        return "📈 Momentum is shifting upwards! **A bullish crossover detected** – buyers are stepping in!"
+
+    elif macd_cross_down and price > middle_band:
+        return "📉 Bearish pressure is building! **A downward move is forming** – caution is advised!"
+
+    elif neutral_zone:
+        return "🧐 The market is in a tricky zone. No action needed for now – **HOLD your position.**"
+
+    return "⚠️ No strong trade signal detected. Stay alert for market changes."
+
 
 
 
@@ -99,9 +116,8 @@ def generate_trade_signal(selected_instrument):
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     trade_signal = generate_trade_signal(selected_instrument)
-
     return jsonify({"instrument": selected_instrument, "signal": trade_signal})
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Read PORT from environment variables
+    port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port)
