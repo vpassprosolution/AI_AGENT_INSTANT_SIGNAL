@@ -4,6 +4,7 @@ import technical_analysis  # Import technical functions
 from flask import Flask, jsonify
 import os
 import numpy as np
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
