@@ -174,21 +174,24 @@ def determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band
     price_above_upper_band = price > upper_band  
     neutral_zone = 40 <= rsi <= 60  
 
-    # Build the aggressive output based on conditions
-    if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Now {selected_instrument} has:**\n📉 **Bearish pressure building!**\nA **downward move** is forming – **Caution is advised!**\n⚠️ **SELL NOW!** Don't wait for the next move – act fast! 💥"
+    print(f"🟢 Oversold: {is_oversold}, 🔴 Overbought: {is_overbought}")
+    print(f"🔼 MACD Cross Up: {macd_cross_up}, 🔽 MACD Cross Down: {macd_cross_down}")
+    print(f"📉 Price Below Lower Band: {price_below_lower_band}, 📈 Price Above Upper Band: {price_above_upper_band}")
+
+    if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):  
+        return "🚀 The market is heating up! 🔥 It's time to **BUY now** before the move starts!"
 
     elif is_overbought and macd_cross_down:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Now {selected_instrument} has:**\n📈 **Momentum shifting upwards!**\nA **bullish crossover** is happening – buyers are stepping in!\n🚀 **BUY NOW!** Ride the wave before it’s too late! 🌊"
+        return "⚠️ Warning! Overbought conditions detected. 📉 **SELL now** before it's too late!"
 
     elif macd_cross_up and price < upper_band:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Now {selected_instrument} has:**\n📈 **Momentum shifting upwards!**\n**A bullish crossover detected** – buyers are stepping in!\n🚀 **BUY NOW!** The next wave is coming! 🌊"
+        return "📈 Momentum is shifting upwards! **A bullish crossover detected** – buyers are stepping in!"
 
     elif macd_cross_down and price > lower_band:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Now {selected_instrument} has:**\n📉 **Bearish pressure building!**\n**A downward move is forming** – caution is advised!\n⚠️ **SELL NOW!** Don’t wait for it to drop further! 💥"
+        return "📉 Bearish pressure is building! **A downward move is forming** – caution is advised!"
 
     elif neutral_zone:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Now {selected_instrument} has:**\n🧐 **The market is in a tricky zone** – No action needed for now.\n⏳ **HOLD YOUR POSITION!** Let the market decide the next move. 🏁"
+        return "🧐 The market is in a tricky zone. No action needed for now – **HOLD your position.**"
 
     return "⚠️ No strong trade signal detected. Stay alert for market changes."
 
