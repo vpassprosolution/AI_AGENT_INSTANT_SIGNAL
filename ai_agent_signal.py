@@ -65,7 +65,7 @@ def generate_trade_signal(selected_instrument):
         price = get_stock_index_price("^DJI")
     elif selected_instrument == "IXIC":
         price = get_stock_index_price("^IXIC")
-    elif selected_instrument == "XAU":
+    elif selected_instrument in ["XAU", "XAUUSD"]:  # ✅ Fixed: Recognize both XAU & XAUUSD
         price = get_gold_price()
     else:
         return "⚠️ No valid instrument selected."
@@ -85,6 +85,7 @@ def generate_trade_signal(selected_instrument):
     trade_signal = technical_analysis.generate_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band)
 
     return trade_signal  # ✅ Correctly returns the final trade signal
+
 
 # API endpoint for trade signal
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
