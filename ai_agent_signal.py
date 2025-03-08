@@ -8,6 +8,17 @@ import logging
 import pandas as pd
 import ta  # ✅ Required for technical indicators
 
+
+# ✅ Define Image Paths for Trade Signals
+IMAGE_PATHS = {
+    "strong_buy": os.path.join(os.getcwd(), "images", "strong_buy.jpg"),
+    "buy": os.path.join(os.getcwd(), "images", "bullish.jpg"),
+    "strong_sell": os.path.join(os.getcwd(), "images", "strong_sell.jpg"),
+    "sell": os.path.join(os.getcwd(), "images", "bearish.jpg"),
+}
+
+
+
 app = Flask(__name__)
 
 # ✅ Enable full logging
@@ -155,10 +166,12 @@ def generate_trade_signal(selected_instrument):
     print(f"📈 [{selected_instrument}] MACD: {macd}, Signal Line: {signal_line}")
     print(f"📉 [{selected_instrument}] Bollinger Bands: Upper: {upper_band}, Middle: {middle_band}, Lower: {lower_band}")
 
-    final_signal = determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band)
+    final_signal, image_path = determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band)
+
     print(f"🔍 FINAL SIGNAL for {selected_instrument}: {final_signal}")  # ✅ Debugging Log
 
-    return final_signal  # ✅ Ensure the function returns the actual signal, not an error message
+    return final_signal, image_path  # ✅ Return both text and image
+  # ✅ Ensure the function returns the actual signal, not an error message
 
 def determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band):
     print("🛠️ DEBUGGING TRADE SIGNAL GENERATION")  
@@ -178,23 +191,47 @@ def determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band
     print(f"🔼 MACD Cross Up: {macd_cross_up}, 🔽 MACD Cross Down: {macd_cross_down}")
     print(f"📉 Price Below Lower Band: {price_below_lower_band}, 📈 Price Above Upper Band: {price_above_upper_band}")
 
-    # Aggressive and high-end signals
+    image_path = None  # Default no image
+
     if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):  
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n⚡ **Now the market is heating up!**\n📈 **Strong Bullish Pressure Detected!**\n🚀 **BUY NOW!** Don't miss this move – it's time to take action! 💰🔥"
+        image_path = IMAGE_PATHS["strong_buy"]
+        return (
+            "🔥 Market is heating up! Buyers are stepping in strongly!\n"
+            "📍 **Action: BUY** ✅\n"
+            "💰 Expecting a bullish run ahead!"
+        ), image_path
 
     elif is_overbought and macd_cross_down:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n⚡ **Now the market is looking dangerous!**\n📉 **Overbought conditions detected!**\n⚠️ **SELL NOW!** Secure your profits before the market reverses! 💥💰"
+        image_path = IMAGE_PATHS["strong_sell"]
+        return (
+            "⚠️ Overbought zone detected! Sellers are taking control!\n"
+            "📍 **Action: SELL** ❌\n"
+            "🔻 Potential downside risk ahead!"
+        ), image_path
 
     elif macd_cross_up and price < upper_band:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n📈 **Momentum is shifting upwards!**\n**A bullish crossover detected – buyers are stepping in!**\n💰 **BUY NOW!** Ride the wave before it’s too late! 🚀"
+        image_path = IMAGE_PATHS["buy"]
+        return (
+            "📈 Trend Shift Alert! Momentum is shifting upwards!\n"
+            "📍 **Action: BUY** ✅\n"
+            "🔹 Look for a breakout above resistance!"
+        ), image_path
 
     elif macd_cross_down and price > lower_band:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n🔥 **BREAKING ALERT!** 🔥\n📉 **Bearish pressure is increasing!**\n⚠️ **SELL NOW!** Don’t get caught in the drop – act fast! 💥💰"
+        image_path = IMAGE_PATHS["sell"]
+        return (
+            "📉 Bearish momentum detected! Watch out!\n"
+            "📍 **Action: SELL** ❌\n"
+            "🔻 Expecting a potential drop in price."
+        ), image_path
 
     elif neutral_zone:
-        return f"🚨 **WHAT'S UP TRADERS!** 🚨\n⚡ **Market conditions are neutral.**\n🧐 **No clear trend – HOLD your position!**\n⏳ **Wait for confirmation before entering a trade.**"
+        return (
+            "📊 Market is quiet, no clear trend detected.\n"
+            "⏳ **Best action: HOLD** and wait for confirmation."
+        ), None  
 
-    return "⚠️ No strong trade signal detected. Stay alert for market changes."
+    return "⚠️ No strong trade signal detected. Stay alert!", None
 
 
 
@@ -202,21 +239,21 @@ def determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
-        print(f"🟢 API Request Received for: {selected_instrument}")  # ✅ Debugging Log
-        trade_signal = generate_trade_signal(selected_instrument)
+        print(f"🟢 API Request Received for: {selected_instrument}")
 
-        print(f"✅ FINAL SIGNAL BEFORE RETURN: {trade_signal}")  # ✅ Print final result
+        trade_signal, image_path = generate_trade_signal(selected_instrument)
 
-        if "No valid data" in trade_signal:
-            print(f"❌ ERROR: No valid data for {selected_instrument}")
-            return jsonify({"instrument": selected_instrument, "signal": "⚠️ No strong trade signal detected."})
+        print(f"✅ FINAL SIGNAL: {trade_signal}, IMAGE: {image_path}")
 
-        print(f"🟢 API Response Sent: {trade_signal}")  # ✅ Debugging Log
-        return jsonify({"instrument": selected_instrument, "signal": trade_signal})
+        if "No strong trade signal" in trade_signal:
+            return jsonify({"instrument": selected_instrument, "signal": trade_signal, "image": None})
+
+        return jsonify({"instrument": selected_instrument, "signal": trade_signal, "image": image_path})
 
     except Exception as e:
         print(f"❌ Error Processing {selected_instrument}: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 
 
