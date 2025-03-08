@@ -178,65 +178,61 @@ def determine_trade_signal(rsi, macd, signal_line, price, upper_band, lower_band
     print(f"🔼 MACD Cross Up: {macd_cross_up}, 🔽 MACD Cross Down: {macd_cross_down}")
     print(f"📉 Price Below Lower Band: {price_below_lower_band}, 📈 Price Above Upper Band: {price_above_upper_band}")
 
-    # Aggressive and high-end signals in a relaxed trader-to-trader style
-if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):  
-    return (
-        "**📢 Heads up, traders!**\n"
-        "Market is showing strong **bullish** signs—MACD is crossing up, and we're coming off oversold levels.\n"
-        "**🔹 Suggested Action: BUY** ✅\n"
-        "**📍 Entry:** Around current price.\n"
-        "**⛔ Stop Loss:** Just below recent support.\n"
-        "**🎯 Take Profit:** At the next key resistance level.\n"
-        "Let’s ride this move, but manage risk properly!"
-    )
+    # ✅ Corrected indentation for the trade signal logic
+    if is_oversold and (macd_cross_up or abs(macd - signal_line) < 0.2):  
+        return (
+            "**📢 Heads up, traders!**\n"
+            "Market is showing strong **bullish** signs—MACD is crossing up, and we're coming off oversold levels.\n"
+            "**🔹 Suggested Action: BUY** ✅\n"
+            "**📍 Entry:** Around current price.\n"
+            "**⛔ Stop Loss:** Just below recent support.\n"
+            "**🎯 Take Profit:** At the next key resistance level.\n"
+            "Let’s ride this move, but manage risk properly!"
+        )
 
-elif is_overbought and macd_cross_down:
-    return (
-        "**📢 Watch out, traders!**\n"
-        "We're hitting overbought levels, and MACD is turning down—potential pullback ahead.\n"
-        "**🔹 Suggested Action: SELL** ❌\n"
-        "**📍 Entry:** Around current price.\n"
-        "**⛔ Stop Loss:** Just above recent high.\n"
-        "**🎯 Take Profit:** At the next support level.\n"
-        "Be smart, lock in profits, and don’t fight the momentum!"
-    )
+    elif is_overbought and macd_cross_down:
+        return (
+            "**📢 Watch out, traders!**\n"
+            "We're hitting overbought levels, and MACD is turning down—potential pullback ahead.\n"
+            "**🔹 Suggested Action: SELL** ❌\n"
+            "**📍 Entry:** Around current price.\n"
+            "**⛔ Stop Loss:** Just above recent high.\n"
+            "**🎯 Take Profit:** At the next support level.\n"
+            "Be smart, lock in profits, and don’t fight the momentum!"
+        )
 
-elif macd_cross_up and price < upper_band:
-    return (
-        "**📢 Trend Shift Alert!**\n"
-        "Buyers are stepping in, and MACD is confirming upward pressure.\n"
-        "**🔹 Suggested Action: BUY** ✅\n"
-        "**📍 Entry:** Wait for confirmation above resistance.\n"
-        "**⛔ Stop Loss:** Below previous low.\n"
-        "**🎯 Take Profit:** Let it run toward the next resistance zone.\n"
-        "Momentum looks good—watch for follow-through!"
-    )
+    elif macd_cross_up and price < upper_band:
+        return (
+            "**📢 Trend Shift Alert!**\n"
+            "Buyers are stepping in, and MACD is confirming upward pressure.\n"
+            "**🔹 Suggested Action: BUY** ✅\n"
+            "**📍 Entry:** Wait for confirmation above resistance.\n"
+            "**⛔ Stop Loss:** Below previous low.\n"
+            "**🎯 Take Profit:** Let it run toward the next resistance zone.\n"
+            "Momentum looks good—watch for follow-through!"
+        )
 
-elif macd_cross_down and price > lower_band:
-    return (
-        "**📢 Caution, sellers taking control!**\n"
-        "MACD is turning down, signaling possible downside movement.\n"
-        "**🔹 Suggested Action: SELL** ❌\n"
-        "**📍 Entry:** Below key support.\n"
-        "**⛔ Stop Loss:** Above recent high.\n"
-        "**🎯 Take Profit:** At the next major support level.\n"
-        "If the trend confirms, this could be a solid move!"
-    )
+    elif macd_cross_down and price > lower_band:
+        return (
+            "**📢 Caution, sellers taking control!**\n"
+            "MACD is turning down, signaling possible downside movement.\n"
+            "**🔹 Suggested Action: SELL** ❌\n"
+            "**📍 Entry:** Below key support.\n"
+            "**⛔ Stop Loss:** Above recent high.\n"
+            "**🎯 Take Profit:** At the next major support level.\n"
+            "If the trend confirms, this could be a solid move!"
+        )
 
-elif neutral_zone:
-    return (
-        "**📢 Market is quiet.**\n"
-        "No clear direction—best to wait for confirmation.\n"
-        "**🔹 Suggested Action: HOLD** ⏳\n"
-        "**📍 No strong trend detected.**\n"
-        "Patience pays—wait for a clear breakout!"
-    )
+    elif neutral_zone:
+        return (
+            "**📢 Market is quiet.**\n"
+            "No clear direction—best to wait for confirmation.\n"
+            "**🔹 Suggested Action: HOLD** ⏳\n"
+            "**📍 No strong trend detected.**\n"
+            "Patience pays—wait for a clear breakout!"
+        )
 
-return "**📢 No trade signal detected.** Stay sharp, watch for opportunities!"
-
-
-
-
+    return "**📢 No trade signal detected.** Stay sharp, watch for opportunities!"
 
 
 
