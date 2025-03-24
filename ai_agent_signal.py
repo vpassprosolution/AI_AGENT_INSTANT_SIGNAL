@@ -163,25 +163,25 @@ STRONG_SELL_MESSAGES = [
 
 
 WEAK_BUY_MESSAGES = [
-    "📊 The chart is whispering opportunity. Early momentum is taking shape, and the bulls are stretching. It's not explosive — yet. But for those watching closely, this is the kind of moment where calculated risk becomes reward. **BUY NOW**, slowly and smartly.",
+    "📊 The chart is whispering opportunity. Early momentum is taking shape, and the bulls are stretching. It's not explosive — yet. But for those watching closely, this is the kind of moment where calculated risk becomes reward. *BUY NOW*, slowly and smartly.",
     
-    "🧠 Smart money isn’t waiting for fireworks. They’re stepping in quietly, before the crowd catches on. This isn’t hype — it’s precision. A subtle shift is underway. If you know, you know. **BUY NOW** with calm confidence.",
+    "🧠 Smart money isn’t waiting for fireworks. They’re stepping in quietly, before the crowd catches on. This isn’t hype — it’s precision. A subtle shift is underway. If you know, you know. *BUY NOW* with calm confidence.",
     
-    "🌱 Every rally starts somewhere… and this could be the seed. It’s quiet, but the ground is shifting. No one’s yelling yet — which is exactly why it matters. Slowly scale in. **BUY NOW** before it gets noticed.",
+    "🌱 Every rally starts somewhere… and this could be the seed. It’s quiet, but the ground is shifting. No one’s yelling yet — which is exactly why it matters. Slowly scale in. *BUY NOW* before it gets noticed.",
     
-    "🟢 The signs aren’t loud — but they’re there. Support is holding, pressure is building. Traders with patience are already making their move. Want in early? This is the zone. **BUY NOW**... don’t chase later.",
+    "🟢 The signs aren’t loud — but they’re there. Support is holding, pressure is building. Traders with patience are already making their move. Want in early? This is the zone. *BUY NOW*... don’t chase later.",
     
-    "💡 Opportunity rarely announces itself. But when you know how to read the market, you feel the buildup. It’s subtle, but undeniable. Slow and steady is the game here. **BUY NOW**, before the wave builds.",
+    "💡 Opportunity rarely announces itself. But when you know how to read the market, you feel the buildup. It’s subtle, but undeniable. Slow and steady is the game here. *BUY NOW*, before the wave builds.",
     
-    "🔄 Market rotation is starting to show. Price is stabilizing, and the path upward is quietly forming. No rush. No panic. Just calculated positioning. This is where legends scale in. **BUY NOW**, gradually.",
+    "🔄 Market rotation is starting to show. Price is stabilizing, and the path upward is quietly forming. No rush. No panic. Just calculated positioning. This is where legends scale in. *BUY NOW*, gradually.",
     
-    "🧪 It’s not a breakout. Not yet. But it’s the kind of setup that turns into one. If you’re waiting for perfection, you’ll miss the real edge. The pros are already easing in. **BUY NOW**, with strategy.",
+    "🧪 It’s not a breakout. Not yet. But it’s the kind of setup that turns into one. If you’re waiting for perfection, you’ll miss the real edge. The pros are already easing in. *BUY NOW*, with strategy.",
     
-    "📈 The upside is whispering — not shouting. And that’s when the best entries happen. Get in early, get in light, and ride the momentum before it becomes obvious. **BUY NOW** while it’s still calm.",
+    "📈 The upside is whispering — not shouting. And that’s when the best entries happen. Get in early, get in light, and ride the momentum before it becomes obvious. *BUY NOW* while it’s still calm.",
     
-    "🧠 This is how early trades feel — uncertain, but full of potential. A perfect storm is slowly brewing. You don’t need to go all in. But if you wait too long… you’ll be chasing. **BUY NOW**, one step at a time.",
+    "🧠 This is how early trades feel — uncertain, but full of potential. A perfect storm is slowly brewing. You don’t need to go all in. But if you wait too long… you’ll be chasing. *BUY NOW*, one step at a time.",
     
-    "🚀 The energy is building under the surface. Price structure is holding firm, buyers are testing the waters. It’s early, yes. But real traders know — this is when the best plays are made. **BUY NOW**, quietly and confidently."
+    "🚀 The energy is building under the surface. Price structure is holding firm, buyers are testing the waters. It’s early, yes. But real traders know — this is when the best plays are made. *BUY NOW*, quietly and confidently."
 ]
 
 
