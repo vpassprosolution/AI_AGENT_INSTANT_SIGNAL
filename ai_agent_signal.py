@@ -163,26 +163,27 @@ STRONG_SELL_MESSAGES = [
 
 
 WEAK_BUY_MESSAGES = [
-    "🔥 *BREAKING ALERT!* 🔥\n\n📈 *Momentum is shifting upwards!*\nA soft bullish crossover detected – early buyers testing the waters.\n\n👩🏻‍💼 *Naomi AI suggests:* **BUY NOW** – enter slowly before the wave builds up! 🚀",
+    "🔥 BREAKING ALERT! 🔥\n\n📊 Momentum is starting to tilt in favor of the bulls. It’s not loud yet, but the pressure is building.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "⚠️ *Market Alert – Cautious Bullish Zone* ⚠️\n\nMACD is curling upward, and RSI shows signs of early strength.\n\n👩🏻‍💼 *Naomi AI recommends:* **BUY NOW**, gradually. Momentum is forming beneath the surface! 📈",
+    "🔥 BREAKING ALERT! 🔥\n\n🌱 A subtle spark is forming beneath the surface. This could be the beginning of something big if it holds.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "📊 *Subtle Bullish Signal Detected!*\n\nBuyers are stepping in lightly… the trend is whispering before it roars.\n\n👩🏻‍💼 *Naomi AI says:* **BUY NOW**, with caution – smart entries begin here. 🧠",
+    "🔥 BREAKING ALERT! 🔥\n\n📈 MACD is curling up gently, and RSI is lifting from neutral. The bulls are warming up quietly.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "🟢 *Green shoots forming…*\n\nA minor bullish shift is forming in the charts.\n\n👩🏻‍💼 *Naomi Suggests:* **BUY NOW**, enter light and stay alert for confirmation. Early bird gets the entry. 🌱",
+    "🔥 BREAKING ALERT! 🔥\n\n🔄 Price has found its footing. Early momentum is forming like the calm before the breakout.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "📉 Price just bounced off key support\n🔄 Momentum is recovering slowly\n\n👩🏻‍💼 *Naomi AI Analysis:* Conditions are improving. **BUY NOW**, but scale in carefully. Patience wins. 💚",
+    "🔥 BREAKING ALERT! 🔥\n\n🧠 Smart money might be stepping in. The shift is small but noticeable — and often that’s all you need.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "🚀 *Early Trend Detected!*\n\nMACD just ticked green. RSI climbing from neutral zone.\n\n👩🏻‍💼 *Naomi Suggests:* **BUY NOW** – start small, position early before momentum gets loud! 🔍",
+    "🔥 BREAKING ALERT! 🔥\n\n💡 The charts aren’t screaming yet — but technicals are lining up slowly. A breakout could be brewing.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "💡 *Whispers of a breakout…*\n\nNo explosion yet, but conditions align quietly.\n\n👩🏻‍💼 *Naomi AI Insight:* **BUY NOW**, calmly – the market is preparing something. 📡",
+    "🔥 BREAKING ALERT! 🔥\n\n📉 Price recently bounced off key support. It’s holding, and upside is beginning to show.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "🧪 *Test Zone Identified*\n\nMarket is stable, momentum slowly rebuilding.\n\n👩🏻‍💼 *Naomi's View:* This is an early entry zone. **BUY NOW** with strategy, not FOMO. 🧠",
+    "🔥 BREAKING ALERT! 🔥\n\n🛠️ The foundation is forming. Volume is calm, but structure is solid. The move may begin soon.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "📈 RSI climbing, MACD turning positive\n\nIt’s not fireworks, but the signal is real.\n\n👩🏻‍💼 *Naomi AI Suggests:* **BUY NOW**, smart and slow. Entry window opening. ✨",
+    "🔥 BREAKING ALERT! 🔥\n\n📡 The signal is faint — but real. A quiet bullish shift is unfolding beneath the surface.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀",
 
-    "⚡ *AI Momentum Scan Complete*\n\nTechnical conditions support a mild bullish bias.\n\n👩🏻‍💼 *Naomi Recommends:* **BUY NOW**, cautiously. Position before the herd moves."
+    "🔥 BREAKING ALERT! 🔥\n\n📊 The market is preparing for its next phase. Those who enter early often ride the cleanest moves.\n\nNaomi Ai suggests BUY NOW! Ride the wave before it’s too late! 🚀"
 ]
+
 
 
 
