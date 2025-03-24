@@ -163,26 +163,27 @@ STRONG_SELL_MESSAGES = [
 
 
 WEAK_BUY_MESSAGES = [
-    "📊 The chart is whispering opportunity. Early momentum is taking shape, and the bulls are stretching. It's not explosive — yet. But for those watching closely, this is the kind of moment where calculated risk becomes reward. *BUY NOW*, slowly and smartly.",
-    
-    "🧠 Smart money isn’t waiting for fireworks. They’re stepping in quietly, before the crowd catches on. This isn’t hype — it’s precision. A subtle shift is underway. If you know, you know. *BUY NOW* with calm confidence.",
-    
-    "🌱 Every rally starts somewhere… and this could be the seed. It’s quiet, but the ground is shifting. No one’s yelling yet — which is exactly why it matters. Slowly scale in. *BUY NOW* before it gets noticed.",
-    
-    "🟢 The signs aren’t loud — but they’re there. Support is holding, pressure is building. Traders with patience are already making their move. Want in early? This is the zone. *BUY NOW*... don’t chase later.",
-    
-    "💡 Opportunity rarely announces itself. But when you know how to read the market, you feel the buildup. It’s subtle, but undeniable. Slow and steady is the game here. *BUY NOW*, before the wave builds.",
-    
-    "🔄 Market rotation is starting to show. Price is stabilizing, and the path upward is quietly forming. No rush. No panic. Just calculated positioning. This is where legends scale in. *BUY NOW*, gradually.",
-    
-    "🧪 It’s not a breakout. Not yet. But it’s the kind of setup that turns into one. If you’re waiting for perfection, you’ll miss the real edge. The pros are already easing in. *BUY NOW*, with strategy.",
-    
-    "📈 The upside is whispering — not shouting. And that’s when the best entries happen. Get in early, get in light, and ride the momentum before it becomes obvious. *BUY NOW* while it’s still calm.",
-    
-    "🧠 This is how early trades feel — uncertain, but full of potential. A perfect storm is slowly brewing. You don’t need to go all in. But if you wait too long… you’ll be chasing. *BUY NOW*, one step at a time.",
-    
-    "🚀 The energy is building under the surface. Price structure is holding firm, buyers are testing the waters. It’s early, yes. But real traders know — this is when the best plays are made. *BUY NOW*, quietly and confidently."
+    "🔥 *BREAKING ALERT!* 🔥\n\n📈 *Momentum is shifting upwards!*\nA soft bullish crossover detected – early buyers testing the waters.\n\n👩🏻‍💼 *Naomi AI suggests:* **BUY NOW** – enter slowly before the wave builds up! 🚀",
+
+    "⚠️ *Market Alert – Cautious Bullish Zone* ⚠️\n\nMACD is curling upward, and RSI shows signs of early strength.\n\n👩🏻‍💼 *Naomi AI recommends:* **BUY NOW**, gradually. Momentum is forming beneath the surface! 📈",
+
+    "📊 *Subtle Bullish Signal Detected!*\n\nBuyers are stepping in lightly… the trend is whispering before it roars.\n\n👩🏻‍💼 *Naomi AI says:* **BUY NOW**, with caution – smart entries begin here. 🧠",
+
+    "🟢 *Green shoots forming…*\n\nA minor bullish shift is forming in the charts.\n\n👩🏻‍💼 *Naomi Suggests:* **BUY NOW**, enter light and stay alert for confirmation. Early bird gets the entry. 🌱",
+
+    "📉 Price just bounced off key support\n🔄 Momentum is recovering slowly\n\n👩🏻‍💼 *Naomi AI Analysis:* Conditions are improving. **BUY NOW**, but scale in carefully. Patience wins. 💚",
+
+    "🚀 *Early Trend Detected!*\n\nMACD just ticked green. RSI climbing from neutral zone.\n\n👩🏻‍💼 *Naomi Suggests:* **BUY NOW** – start small, position early before momentum gets loud! 🔍",
+
+    "💡 *Whispers of a breakout…*\n\nNo explosion yet, but conditions align quietly.\n\n👩🏻‍💼 *Naomi AI Insight:* **BUY NOW**, calmly – the market is preparing something. 📡",
+
+    "🧪 *Test Zone Identified*\n\nMarket is stable, momentum slowly rebuilding.\n\n👩🏻‍💼 *Naomi's View:* This is an early entry zone. **BUY NOW** with strategy, not FOMO. 🧠",
+
+    "📈 RSI climbing, MACD turning positive\n\nIt’s not fireworks, but the signal is real.\n\n👩🏻‍💼 *Naomi AI Suggests:* **BUY NOW**, smart and slow. Entry window opening. ✨",
+
+    "⚡ *AI Momentum Scan Complete*\n\nTechnical conditions support a mild bullish bias.\n\n👩🏻‍💼 *Naomi Recommends:* **BUY NOW**, cautiously. Position before the herd moves."
 ]
+
 
 
 
