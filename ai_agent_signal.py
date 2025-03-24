@@ -84,6 +84,17 @@ def get_gold_price():
     print("⚠️ No Gold price found in API response!")
     return None
 
+def fetch_real_prices(symbol):
+    try:
+        data = yf.Ticker(symbol).history(period="2d", interval="5m")
+        if not data.empty and len(data) >= 30:
+            close_prices = list(data["Close"].values[-30:])
+            latest_price = round(close_prices[-1], 2)
+            return close_prices, latest_price
+    except Exception as e:
+        print(f"❌ Error fetching data for {symbol}: {e}")
+    return None, None
+
 # ✅ Indicator Calculations
 def calculate_rsi(prices):
     df = pd.DataFrame(prices, columns=["price"])
@@ -132,17 +143,18 @@ STRONG_SELL_MESSAGES = [
 ]
 
 WEAK_BUY_MESSAGES = [
-    "🟢 BUY with caution – early strength forming.",
-    "📊 Slight bullish signs. Consider light entry.",
-    "⚠️ Not perfect, but BUY bias present.",
-    "🧠 Buy small, protect smart – early move brewing.",
-    "🔄 Mini reversal forming. BUY small.",
-    "💡 Bulls testing waters. Cautious BUY possible.",
-    "🟢 Conservative entry zone. BUY with plan.",
-    "📈 Potential upside forming. BUY light.",
-    "🌱 Early growth – BUY to get in early.",
-    "🧪 Risk-managed BUY zone. Trade wise."
+    "🟢 The bulls are waking up… This could be your early window. A subtle but solid **BUY** zone is emerging.",
+    "📊 The market whispers... Not loud, but it leans **bullish**. A small **BUY** now might place you ahead of the crowd.",
+    "⚠️ Conditions aren't perfect — but sometimes smart traders act before perfection. Think about a light **BUY**.",
+    "🧠 The early signs of momentum are forming. A tactical **BUY** now could set you up for the next wave.",
+    "🔄 It’s bending... not yet breaking out. A cautious **BUY** here could be the move others miss.",
+    "💡 The bulls are poking the chart. No fireworks yet, but you don’t want to chase later. Strategic **BUY** zone.",
+    "🟢 Calm before the surge? Some strength showing. It may not scream, but it points to a calculated **BUY**.",
+    "📈 You're seeing what others will notice later. Quiet strength = early edge. A smart **BUY** now isn't crazy.",
+    "🌱 This is how trends are born. You either wait… or you plant your flag. Early **BUY** opportunity.",
+    "🧪 It's experimental — but the risk looks manageable. For those who know how to play it: **BUY** with intent."
 ]
+
 
 WEAK_SELL_MESSAGES = [
     "🔻 SELL with caution – weakness appearing.",
