@@ -117,49 +117,51 @@ def calculate_bollinger(prices):
 
 # ✅ Signal Messages
 STRONG_BUY_MESSAGES = [
-    "🚀 This is it. RSI is buried, MACD just lit a fire, and price is loading up like a rocket about to launch. Every technical light is green. The window won’t stay open long — **BUY NOW** and ride this breakout with conviction! 💥📈",
+    "🔥 BREAKING ALERT! 🔥\n\n🚀 Momentum is exploding! RSI is climbing strong, and MACD just fired a bullish crossover. This is not a test — it's the real deal.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "🔥 Bulls are in full control. This is not a test. This is what traders wait weeks for — momentum, structure, and sentiment all aligned. You miss this, you’ll chase it later. **BUY NOW** while it’s fresh and flying. 🚀",
+    "🔥 BREAKING ALERT! 🔥\n\n📈 The bulls are charging! Volume is rising, indicators are aligned, and the market is waking up with power.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "💣 The setup is undeniable. Volume’s rising, indicators are screaming bullish, and the move is brewing beneath the surface. You either react now or regret it later. No hesitation. **BUY NOW** and own the edge. 🧨",
+    "🔥 BREAKING ALERT! 🔥\n\n💥 A major breakout is unfolding! This isn’t noise — this is a calculated ignition from the technicals.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "📈 You’re watching a textbook bullish explosion in progress. The kind of move that starts slow and then leaves everyone behind. This is the type of signal that doesn’t come often. **BUY NOW**, or watch it run without you. ⏱️",
+    "🔥 BREAKING ALERT! 🔥\n\n🟢 RSI is surging from oversold territory, and MACD just confirmed liftoff. The breakout zone is live!\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "🟢 This is no ordinary bounce — this is a power shift. Bulls have taken the reins, and they’re not letting go. The breakout energy is real. Stop overthinking. **BUY NOW** before the stampede begins. 🐂🔥",
+    "🔥 BREAKING ALERT! 🔥\n\n📊 The chart just lit up — trend reversal confirmed! Momentum is in full throttle.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "💥 Trend reversal confirmed. This isn’t guesswork. Momentum is aligned, structure is clean, and confidence is building. Traders are entering heavily. Don’t be last. **BUY NOW**, or stay sidelined. Your call. 📊",
+    "🔥 BREAKING ALERT! 🔥\n\n⚡ Bulls are back with fury! Key resistance has been broken and support is holding tight.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "🚨 Breakout confirmation. RSI is reversing from oversold, MACD crossover is clean, and price just reclaimed key levels. The storm is here — but this time, you’re the lightning. **BUY NOW** with power. ⚡",
+    "🔥 BREAKING ALERT! 🔥\n\n💹 Everything aligns — RSI, MACD, Bollinger. This is the setup pro traders dream of.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "🔥 Every signal that matters is flashing bullish. Momentum? ✅ Volume? ✅ Price structure? ✅ This is not the time to hesitate. The market is giving you a gift. **BUY NOW**, and hold on tight. 🎯",
+    "🔥 BREAKING ALERT! 🔥\n\n📣 The market is screaming bullish — no hesitation, just domination. This is the moment.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "📊 It’s one of those rare moments where everything lines up. Charts don’t lie — and they’re saying one thing loud and clear: **BUY NOW**. This is your shot to catch the move before the masses see it. 🧠",
+    "🔥 BREAKING ALERT! 🔥\n\n🧨 The pressure has built up — and now it's releasing. Early buyers already entered. You’re next.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀",
 
-    "🚀 Entry point of the week just showed up. The kind that sets the tone for the whole session. Early buyers are loading. Smart traders are ready. This is your chance to be first. **BUY NOW**, and don’t look back. 🏁"
+    "🔥 BREAKING ALERT! 🔥\n\n🎯 Precision entry point detected! Momentum is heating up fast — don’t miss this golden window.\n\nNaomi Ai suggests STRONG BUY NOW! Ride the explosion before it takes off! 🚀"
 ]
+
 
 
 STRONG_SELL_MESSAGES = [
-    "💣 This isn’t a dip — it’s the start of a full-blown meltdown. Indicators are collapsing, buyers are vanishing, and momentum is falling off a cliff. Protect what’s yours. **SELL NOW** before the floor drops out. 📉",
+    "🔥 BREAKING ALERT! 🔥\n\n📉 A major breakdown is unfolding! RSI is spiking downward, MACD just flipped bearish — and price is cracking support.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "🚨 It’s all breaking down. RSI is screaming overbought, MACD flipped hard, and price just cracked support. There’s no time to debate. **SELL NOW**, or get caught in the collapse. 🛑",
+    "🔥 BREAKING ALERT! 🔥\n\n💥 Momentum is collapsing, and bulls are vanishing. This isn't a dip — it's the start of a larger downtrend.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "⚠️ The market just hit a turning point — and not the good kind. Distribution is obvious, and the bulls are trapped. Exit before they drag you down. This is serious. **SELL NOW**, aggressively. 💥",
+    "🔥 BREAKING ALERT! 🔥\n\n💀 The charts are bleeding. RSI is overbought and diving, MACD flipped hard, and volume is flooding red.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "💀 This chart looks like a disaster in progress. Uptrend is gone, momentum is dead, and fear is starting to spread. Traders are bailing. You should too. **SELL NOW**, and live to trade another day. 🩸",
+    "🔥 BREAKING ALERT! 🔥\n\n⚠️ Trend reversal confirmed! Key support broken, momentum rolling downhill — this isn’t slowing anytime soon.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "📉 This is your final warning. Overbought reversal confirmed. Volume is fading, and weakness is taking over fast. Waiting any longer? That’s called gambling. **SELL NOW**, while you still have control. ⏳",
+    "🔥 BREAKING ALERT! 🔥\n\n📊 Indicators in freefall. MACD has plunged below signal, and RSI can't hold its levels. This is a clean signal to get out.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "🔥 Everything is flashing red. You’re not being paranoid — you’re being smart. Bulls are losing control, and this thing is tipping hard. There’s one move left: **SELL NOW**, fast and clean. 🧯",
+    "🔥 BREAKING ALERT! 🔥\n\n🚨 Panic volume detected. The market is rushing for the exits, and price is falling through the floor.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "🔻 Breakdown in progress. MACD flipped, RSI is tanking, and support zones are shattered. Hope is not a strategy. Lock your gains. Cut your losses. **SELL NOW**, before it’s too late. 📊",
+    "🔥 BREAKING ALERT! 🔥\n\n🔻 Breakdown in motion! Lower lows, failed bounces, and bearish momentum surging. No time left to hesitate.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "🚫 The rally is fake. The drop is real. Buyers are exhausted, and price action is telling the truth. Exit now or watch it all bleed out. **SELL NOW**, no hesitation. 💣",
+    "🔥 BREAKING ALERT! 🔥\n\n📛 Support has collapsed. Price is unraveling and volatility is exploding — don’t wait for confirmation.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "📛 This setup is beyond dangerous. It’s not just fading — it’s crashing. Volume spike on the downside, MACD diving, RSI screaming exit. Be smart. Be fast. **SELL NOW**, and don’t look back. 💔",
+    "🔥 BREAKING ALERT! 🔥\n\n🧯 Momentum is toast. Bulls have lost control completely — and smart money is already out.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉",
 
-    "🧠 If you’ve been waiting for a sign, this is it. Market is cracking, technicals are cooked, and sentiment is turning cold. This isn’t time to analyze — it’s time to act. **SELL NOW**, aggressively. 🔥"
+    "🔥 BREAKING ALERT! 🔥\n\n🩸 This isn't weakness — it’s surrender. Indicators are flashing red across the board. This is a confirmed breakdown.\n\nNaomi Ai suggests STRONG SELL NOW! Exit fast before the drop gets deeper! 📉"
 ]
+
 
 
 WEAK_BUY_MESSAGES = [
@@ -189,26 +191,27 @@ WEAK_BUY_MESSAGES = [
 
 
 WEAK_SELL_MESSAGES = [
-    "📉 Momentum is quietly slipping. No panic yet — but the strength is fading fast. It’s not a full collapse, but smart traders are trimming. **SELL NOW**, lightly but deliberately.",
+    "🔥 BREAKING ALERT! 🔥\n\n📉 Momentum is quietly fading… not a crash, but a slow decline is setting in. The bulls look tired, and upside energy is losing grip.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "🧠 It’s not chaos — it’s calculated deterioration. RSI is weakening, and buyers are getting tired. If you’ve been holding, now’s the time to reduce risk. **SELL NOW**, with control.",
+    "🔥 BREAKING ALERT! 🔥\n\n🧠 Something’s changing under the surface. Momentum indicators are softening, and buyers aren’t stepping in as confidently.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "⚠️ Signs of exhaustion are everywhere. Price action looks soft, and momentum is barely breathing. You don’t need to run — but don’t stand still either. **SELL NOW**, step by step.",
+    "🔥 BREAKING ALERT! 🔥\n\n⚠️ Early cracks forming in the structure. RSI is dipping gently, MACD is flattening. It’s the kind of weakness smart traders don’t ignore.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "🩸 The uptrend is wounded. It’s limping, not dead — but weakness is creeping in. Don’t wait for confirmation of a crash. Scale out slowly. **SELL NOW**, while the door’s still open.",
+    "🔥 BREAKING ALERT! 🔥\n\n🩸 The chart isn’t broken yet, but it’s limping. Price failed to make new highs and momentum is drifting. Quiet exits are already happening.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "💀 It's not dramatic... yet. But the cracks are forming. A stealthy reversal is brewing, and smart money is already adjusting. Play it like a pro. **SELL NOW**, no emotion.",
+    "🔥 BREAKING ALERT! 🔥\n\n💀 This isn’t panic — it’s preparation. Early signs of a potential fade are here. Volume’s drying up and trend is flattening.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "🧯 The fire’s going out. Momentum cooled, volume dropped, and upside looks tired. Time to secure gains or minimize exposure. **SELL NOW**, tactically.",
+    "🔥 BREAKING ALERT! 🔥\n\n🧯 Momentum has cooled and energy is slipping. The uptrend is losing steam. No need to panic — but smart exits happen early.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "📊 The chart still looks okay — but you know better. The vibe has shifted. Support is being tested and momentum is fading. Don’t wait for it to break. **SELL NOW**, cautiously.",
+    "🔥 BREAKING ALERT! 🔥\n\n📊 Bulls are hesitating. Market sentiment feels dull, and price can’t push higher. A pullback may be near.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "🚨 Market’s not crashing — but it’s not climbing either. You’re entering a zone of slow bleed. Stay ahead of it. **SELL NOW**, gently but with purpose.",
+    "🔥 BREAKING ALERT! 🔥\n\n🚨 It’s not dramatic — yet. But this is where silent reversals begin. The first to act usually exit clean.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "🔻 Subtle weakness often turns into sharp drops. Don’t get caught sleeping. This is your heads-up. **SELL NOW**, wisely.",
+    "🔥 BREAKING ALERT! 🔥\n\n🔻 The fire is dimming. Indicators are sluggish and price is struggling to hold strength. Trim early, not late.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉",
 
-    "⏳ Time’s ticking, and the edge is disappearing. The longer you hold, the thinner your profits get. Be proactive. **SELL NOW**, before it’s obvious to everyone else."
+    "🔥 BREAKING ALERT! 🔥\n\n⏳ Time to be cautious. Bulls had their chance — now the market feels heavy. Small exit now could save bigger regret later.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉"
 ]
+
 
 
 # ✅ Detect signal type (used in cache)
