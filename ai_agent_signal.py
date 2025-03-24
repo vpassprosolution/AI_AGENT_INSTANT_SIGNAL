@@ -195,39 +195,55 @@ def determine_trade_signal(rsi, macd, signal_line, price, upper, lower):
     else:
         return random.choice(WEAK_SELL_MESSAGES)
 
-# Generate & Return API Signal
+# ✅ Generate & Return API Signal (Gold from Metals API only)
 def generate_trade_signal(instrument):
     now = time.time()
+
+    # ✅ Cooldown lock: 15 minutes
     if instrument in last_signal_data:
         last_time, last_signal = last_signal_data[instrument]
         if now - last_time < 900:
             print(f"🔄 Returning cached signal for {instrument} (within 15 mins)")
             return last_signal
 
+    # ✅ Valid Yahoo/Metals API symbols
+    symbol_map = {
+        "BTC": "BTC-USD",
+        "ETH": "ETH-USD",
+        "EURUSD": "EURUSD=X",
+        "GBPUSD": "GBPUSD=X",
+        "DJI": "^DJI",
+        "IXIC": "^IXIC"
+    }
+
     if instrument in ["XAU", "XAUUSD"]:
-        prices, price = get_gold_price()
+        # ✅ Get gold price from Metals API (NO candles)
+        price = get_gold_price()
+        if price is None:
+            return f"⚠️ Failed to fetch gold price from Metals API."
+
+        prices = [price] * 30  # Fake historical candles to allow indicators
     else:
-        symbol_map = {
-            "BTC": get_crypto_price("BTC"),
-            "ETH": get_crypto_price("ETH"),
-            "EURUSD": get_forex_price("EURUSD"),
-            "GBPUSD": get_forex_price("GBPUSD"),
-            "DJI": get_stock_index_price("^DJI"),
-            "IXIC": get_stock_index_price("^IXIC")
-        }
         symbol = symbol_map.get(instrument)
-        prices, price = fetch_real_prices(symbol) if symbol else (None, None)
+        if not symbol:
+            return f"⚠️ Unsupported instrument: {instrument}"
 
-    if not prices or price is None:
-        return f"⚠️ No valid data available for {instrument}."
+        prices, price = fetch_real_prices(symbol)
+        if not prices or price is None:
+            return f"⚠️ No valid price data for {instrument}."
 
+    # ✅ Run Indicators
     rsi = calculate_rsi(prices)
     macd, signal_line = calculate_macd(prices)
     upper, middle, lower = calculate_bollinger(prices)
 
+    # ✅ Build final signal
     final_signal = determine_trade_signal(rsi, macd, signal_line, price, upper, lower)
+
+    # ✅ Cache the result
     last_signal_data[instrument] = (now, final_signal)
     return final_signal
+
 
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
