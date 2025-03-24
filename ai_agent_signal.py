@@ -117,57 +117,97 @@ def calculate_bollinger(prices):
 
 # ✅ Signal Messages
 STRONG_BUY_MESSAGES = [
-    "🚨 ALERT! The market is showing explosive bullish momentum! BUY NOW! 💥💰",
-    "🔥 Bulls have taken over! BUY NOW and dominate the move! 🟢📈",
-    "📈 Unstoppable surge detected. BUY before it rockets! 💸🚀",
-    "💣 Major reversal confirmed! BUY zones are live! 🔥",
-    "💥 MACD + RSI = 🔥 BUY NOW before it flies!",
-    "🧨 Bullish storm forming! BUY before breakout! 💵",
-    "🟢 Market glowing green – BUY with confidence!",
-    "📊 Technicals are aligned – BUY NOW and ride the wave!",
-    "🚀 RSI reversal and MACD ignition! BUY THE BOOM!",
-    "🔥 BUY SIGNAL CONFIRMED! Strike now! 💥"
+    "🚀 This is it. RSI is buried, MACD just lit a fire, and price is loading up like a rocket about to launch. Every technical light is green. The window won’t stay open long — **BUY NOW** and ride this breakout with conviction! 💥📈",
+
+    "🔥 Bulls are in full control. This is not a test. This is what traders wait weeks for — momentum, structure, and sentiment all aligned. You miss this, you’ll chase it later. **BUY NOW** while it’s fresh and flying. 🚀",
+
+    "💣 The setup is undeniable. Volume’s rising, indicators are screaming bullish, and the move is brewing beneath the surface. You either react now or regret it later. No hesitation. **BUY NOW** and own the edge. 🧨",
+
+    "📈 You’re watching a textbook bullish explosion in progress. The kind of move that starts slow and then leaves everyone behind. This is the type of signal that doesn’t come often. **BUY NOW**, or watch it run without you. ⏱️",
+
+    "🟢 This is no ordinary bounce — this is a power shift. Bulls have taken the reins, and they’re not letting go. The breakout energy is real. Stop overthinking. **BUY NOW** before the stampede begins. 🐂🔥",
+
+    "💥 Trend reversal confirmed. This isn’t guesswork. Momentum is aligned, structure is clean, and confidence is building. Traders are entering heavily. Don’t be last. **BUY NOW**, or stay sidelined. Your call. 📊",
+
+    "🚨 Breakout confirmation. RSI is reversing from oversold, MACD crossover is clean, and price just reclaimed key levels. The storm is here — but this time, you’re the lightning. **BUY NOW** with power. ⚡",
+
+    "🔥 Every signal that matters is flashing bullish. Momentum? ✅ Volume? ✅ Price structure? ✅ This is not the time to hesitate. The market is giving you a gift. **BUY NOW**, and hold on tight. 🎯",
+
+    "📊 It’s one of those rare moments where everything lines up. Charts don’t lie — and they’re saying one thing loud and clear: **BUY NOW**. This is your shot to catch the move before the masses see it. 🧠",
+
+    "🚀 Entry point of the week just showed up. The kind that sets the tone for the whole session. Early buyers are loading. Smart traders are ready. This is your chance to be first. **BUY NOW**, and don’t look back. 🏁"
 ]
+
 
 STRONG_SELL_MESSAGES = [
-    "🚨 SELL IMMEDIATELY! This market is turning! 📉💥",
-    "⚠️ Top reached. SELL now before the drop hits!",
-    "🔻 Overbought + MACD reversal = SELL IT ALL!",
-    "💀 Charts scream SELL – protect your capital!",
-    "🔥 SELL ZONE confirmed. Exit now or regret it.",
-    "📉 Trend is dying. SELL BEFORE THE FALL!",
-    "🩸 Big players exiting. SELL with them!",
-    "🚫 Momentum dead. SELL while you can!",
-    "🔺 Fake pump fading – SELL and secure profit!",
-    "💣 Time to lock gains. SELL FAST!"
+    "💣 This isn’t a dip — it’s the start of a full-blown meltdown. Indicators are collapsing, buyers are vanishing, and momentum is falling off a cliff. Protect what’s yours. **SELL NOW** before the floor drops out. 📉",
+
+    "🚨 It’s all breaking down. RSI is screaming overbought, MACD flipped hard, and price just cracked support. There’s no time to debate. **SELL NOW**, or get caught in the collapse. 🛑",
+
+    "⚠️ The market just hit a turning point — and not the good kind. Distribution is obvious, and the bulls are trapped. Exit before they drag you down. This is serious. **SELL NOW**, aggressively. 💥",
+
+    "💀 This chart looks like a disaster in progress. Uptrend is gone, momentum is dead, and fear is starting to spread. Traders are bailing. You should too. **SELL NOW**, and live to trade another day. 🩸",
+
+    "📉 This is your final warning. Overbought reversal confirmed. Volume is fading, and weakness is taking over fast. Waiting any longer? That’s called gambling. **SELL NOW**, while you still have control. ⏳",
+
+    "🔥 Everything is flashing red. You’re not being paranoid — you’re being smart. Bulls are losing control, and this thing is tipping hard. There’s one move left: **SELL NOW**, fast and clean. 🧯",
+
+    "🔻 Breakdown in progress. MACD flipped, RSI is tanking, and support zones are shattered. Hope is not a strategy. Lock your gains. Cut your losses. **SELL NOW**, before it’s too late. 📊",
+
+    "🚫 The rally is fake. The drop is real. Buyers are exhausted, and price action is telling the truth. Exit now or watch it all bleed out. **SELL NOW**, no hesitation. 💣",
+
+    "📛 This setup is beyond dangerous. It’s not just fading — it’s crashing. Volume spike on the downside, MACD diving, RSI screaming exit. Be smart. Be fast. **SELL NOW**, and don’t look back. 💔",
+
+    "🧠 If you’ve been waiting for a sign, this is it. Market is cracking, technicals are cooked, and sentiment is turning cold. This isn’t time to analyze — it’s time to act. **SELL NOW**, aggressively. 🔥"
 ]
 
+
 WEAK_BUY_MESSAGES = [
-    "🟢 The bulls are waking up… This could be your early window. A subtle but solid **BUY** zone is emerging.",
-    "📊 The market whispers... Not loud, but it leans **bullish**. A small **BUY** now might place you ahead of the crowd.",
-    "⚠️ Conditions aren't perfect — but sometimes smart traders act before perfection. Think about a light **BUY**.",
-    "🧠 The early signs of momentum are forming. A tactical **BUY** now could set you up for the next wave.",
-    "🔄 It’s bending... not yet breaking out. A cautious **BUY** here could be the move others miss.",
-    "💡 The bulls are poking the chart. No fireworks yet, but you don’t want to chase later. Strategic **BUY** zone.",
-    "🟢 Calm before the surge? Some strength showing. It may not scream, but it points to a calculated **BUY**.",
-    "📈 You're seeing what others will notice later. Quiet strength = early edge. A smart **BUY** now isn't crazy.",
-    "🌱 This is how trends are born. You either wait… or you plant your flag. Early **BUY** opportunity.",
-    "🧪 It's experimental — but the risk looks manageable. For those who know how to play it: **BUY** with intent."
+    "📊 The chart is whispering opportunity. Early momentum is taking shape, and the bulls are stretching. It's not explosive — yet. But for those watching closely, this is the kind of moment where calculated risk becomes reward. **BUY NOW**, slowly and smartly.",
+    
+    "🧠 Smart money isn’t waiting for fireworks. They’re stepping in quietly, before the crowd catches on. This isn’t hype — it’s precision. A subtle shift is underway. If you know, you know. **BUY NOW** with calm confidence.",
+    
+    "🌱 Every rally starts somewhere… and this could be the seed. It’s quiet, but the ground is shifting. No one’s yelling yet — which is exactly why it matters. Slowly scale in. **BUY NOW** before it gets noticed.",
+    
+    "🟢 The signs aren’t loud — but they’re there. Support is holding, pressure is building. Traders with patience are already making their move. Want in early? This is the zone. **BUY NOW**... don’t chase later.",
+    
+    "💡 Opportunity rarely announces itself. But when you know how to read the market, you feel the buildup. It’s subtle, but undeniable. Slow and steady is the game here. **BUY NOW**, before the wave builds.",
+    
+    "🔄 Market rotation is starting to show. Price is stabilizing, and the path upward is quietly forming. No rush. No panic. Just calculated positioning. This is where legends scale in. **BUY NOW**, gradually.",
+    
+    "🧪 It’s not a breakout. Not yet. But it’s the kind of setup that turns into one. If you’re waiting for perfection, you’ll miss the real edge. The pros are already easing in. **BUY NOW**, with strategy.",
+    
+    "📈 The upside is whispering — not shouting. And that’s when the best entries happen. Get in early, get in light, and ride the momentum before it becomes obvious. **BUY NOW** while it’s still calm.",
+    
+    "🧠 This is how early trades feel — uncertain, but full of potential. A perfect storm is slowly brewing. You don’t need to go all in. But if you wait too long… you’ll be chasing. **BUY NOW**, one step at a time.",
+    
+    "🚀 The energy is building under the surface. Price structure is holding firm, buyers are testing the waters. It’s early, yes. But real traders know — this is when the best plays are made. **BUY NOW**, quietly and confidently."
 ]
+
 
 
 WEAK_SELL_MESSAGES = [
-    "🔻 SELL with caution – weakness appearing.",
-    "📉 Momentum fading. Lighten your bag.",
-    "⚠️ Sideways slide – SELL smart.",
-    "🧠 Smart exit point forming. SELL partially.",
-    "💀 Indicators dropping – SELL light.",
-    "📊 Soft downtrend detected. Take profit.",
-    "🩸 Losing strength. SELL if you're in.",
-    "⚠️ Not crashing, but SELL safe.",
-    "🔻 Cracks appearing – SELL small before break.",
-    "🧯 Fire’s cooling off – SELL and wait."
+    "📉 Momentum is quietly slipping. No panic yet — but the strength is fading fast. It’s not a full collapse, but smart traders are trimming. **SELL NOW**, lightly but deliberately.",
+
+    "🧠 It’s not chaos — it’s calculated deterioration. RSI is weakening, and buyers are getting tired. If you’ve been holding, now’s the time to reduce risk. **SELL NOW**, with control.",
+
+    "⚠️ Signs of exhaustion are everywhere. Price action looks soft, and momentum is barely breathing. You don’t need to run — but don’t stand still either. **SELL NOW**, step by step.",
+
+    "🩸 The uptrend is wounded. It’s limping, not dead — but weakness is creeping in. Don’t wait for confirmation of a crash. Scale out slowly. **SELL NOW**, while the door’s still open.",
+
+    "💀 It's not dramatic... yet. But the cracks are forming. A stealthy reversal is brewing, and smart money is already adjusting. Play it like a pro. **SELL NOW**, no emotion.",
+
+    "🧯 The fire’s going out. Momentum cooled, volume dropped, and upside looks tired. Time to secure gains or minimize exposure. **SELL NOW**, tactically.",
+
+    "📊 The chart still looks okay — but you know better. The vibe has shifted. Support is being tested and momentum is fading. Don’t wait for it to break. **SELL NOW**, cautiously.",
+
+    "🚨 Market’s not crashing — but it’s not climbing either. You’re entering a zone of slow bleed. Stay ahead of it. **SELL NOW**, gently but with purpose.",
+
+    "🔻 Subtle weakness often turns into sharp drops. Don’t get caught sleeping. This is your heads-up. **SELL NOW**, wisely.",
+
+    "⏳ Time’s ticking, and the edge is disappearing. The longer you hold, the thinner your profits get. Be proactive. **SELL NOW**, before it’s obvious to everyone else."
 ]
+
 
 # ✅ Detect signal type (used in cache)
 def detect_signal_type(rsi, macd, signal_line, price, upper, lower):
