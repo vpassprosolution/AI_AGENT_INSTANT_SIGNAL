@@ -216,18 +216,27 @@ WEAK_SELL_MESSAGES = [
 
 # ✅ Detect signal type (used in cache)
 def detect_signal_type(rsi, macd, signal_line, price, upper, lower):
-    strong_momentum = (macd > signal_line and rsi > 55) or (macd < signal_line and rsi < 45)
-    weak_momentum = 45 <= rsi <= 55
-
-    if rsi < 30 and macd > signal_line and strong_momentum:
+    # More aggressive thresholds
+    if rsi <= 32 and macd > signal_line and price < lower:
         return "STRONG_BUY"
-    if rsi > 70 and macd < signal_line and strong_momentum:
+    if rsi >= 68 and macd < signal_line and price > upper:
         return "STRONG_SELL"
-    if macd > signal_line and price < upper:
+    
+    # Slightly less conservative conditions for strong signals
+    if macd > signal_line and rsi > 58 and price < upper:
+        return "STRONG_BUY"
+    if macd < signal_line and rsi < 42 and price > lower:
+        return "STRONG_SELL"
+    
+    # Medium strength buy/sell still valid
+    if macd > signal_line and rsi >= 50:
         return "WEAK_BUY"
-    if macd < signal_line and price > lower:
+    if macd < signal_line and rsi < 50:
         return "WEAK_SELL"
+    
+    # Neutral fallback
     return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
+
 
 # ✅ Get message by signal type
 def get_random_message(signal_type):
