@@ -193,6 +193,18 @@ WEAK_SELL_MESSAGES = [
     "🔥 BREAKING ALERT! 🔥\n\n⏳ Time to be cautious. Bulls had their chance — now the market feels heavy. Small exit now could save bigger regret later.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉"
 ]
 
+def get_random_message(signal_type):
+    if signal_type == "STRONG_BUY":
+        return random.choice(STRONG_BUY_MESSAGES)
+    elif signal_type == "STRONG_SELL":
+        return random.choice(STRONG_SELL_MESSAGES)
+    elif signal_type == "WEAK_BUY":
+        return random.choice(WEAK_BUY_MESSAGES)
+    elif signal_type == "WEAK_SELL":
+        return random.choice(WEAK_SELL_MESSAGES)
+    else:
+        return "⚠️ Unable to determine signal at this time."
+
 # ✅ Indicator Calculations
 def calculate_rsi(prices):
     df = pd.DataFrame(prices, columns=["price"])
