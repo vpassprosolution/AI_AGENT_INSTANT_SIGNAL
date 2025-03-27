@@ -251,7 +251,7 @@ def detect_signal_type(rsi, macd, signal_line, price, upper, lower, trend):
             return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
 
 
-# ✅ Main Hybrid Signal Logic
+# ✅ Main Hybrid Signal Logic (no timeframe mention in output)
 def generate_trade_signal(instrument):
     now = time.time()
     cache = last_signal_data.get(instrument)
@@ -274,7 +274,7 @@ def generate_trade_signal(instrument):
         price = get_gold_price()
         if price is None:
             return "⚠️ Failed to get gold price."
-        prices = [price] * 30
+        prices = [price] * 30  # Simulate candle behavior
     else:
         symbol = symbol_map.get(instrument)
         if not symbol:
@@ -297,6 +297,7 @@ def generate_trade_signal(instrument):
     }
 
     return get_random_message(signal_type)
+
 
 
 # ✅ Flask API
