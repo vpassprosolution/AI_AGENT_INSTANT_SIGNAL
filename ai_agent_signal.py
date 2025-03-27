@@ -95,25 +95,6 @@ def fetch_real_prices(symbol):
         print(f"❌ Error fetching data for {symbol}: {e}")
     return None, None
 
-# ✅ Indicator Calculations
-def calculate_rsi(prices):
-    df = pd.DataFrame(prices, columns=["price"])
-    return ta.momentum.RSIIndicator(df["price"], window=14).rsi().iloc[-1]
-
-def calculate_macd(prices):
-    df = pd.DataFrame(prices, columns=["price"])
-    macd_obj = ta.trend.MACD(df["price"])
-    macd = macd_obj.macd().iloc[-1]
-    signal = macd_obj.macd_signal().iloc[-1]
-    return macd, signal
-
-def calculate_bollinger(prices):
-    df = pd.DataFrame(prices, columns=["price"])
-    bb = ta.volatility.BollingerBands(df["price"])
-    upper = bb.bollinger_hband().iloc[-1]
-    middle = bb.bollinger_mavg().iloc[-1]
-    lower = bb.bollinger_lband().iloc[-1]
-    return upper, middle, lower
 
 # ✅ Signal Messages
 STRONG_BUY_MESSAGES = [
@@ -212,31 +193,59 @@ WEAK_SELL_MESSAGES = [
     "🔥 BREAKING ALERT! 🔥\n\n⏳ Time to be cautious. Bulls had their chance — now the market feels heavy. Small exit now could save bigger regret later.\n\nNaomi Ai suggests SELL NOW before it slips further! 📉"
 ]
 
+# ✅ Indicator Calculations
+def calculate_rsi(prices):
+    df = pd.DataFrame(prices, columns=["price"])
+    return ta.momentum.RSIIndicator(df["price"], window=14).rsi().iloc[-1]
 
+def calculate_macd(prices):
+    df = pd.DataFrame(prices, columns=["price"])
+    macd_obj = ta.trend.MACD(df["price"])
+    macd = macd_obj.macd().iloc[-1]
+    signal = macd_obj.macd_signal().iloc[-1]
+    return macd, signal
 
-# ✅ Detect signal type (used in cache)
-def detect_signal_type(rsi, macd, signal_line, price, upper, lower):
-    # More aggressive thresholds
-    if rsi <= 32 and macd > signal_line and price < lower:
-        return "STRONG_BUY"
-    if rsi >= 68 and macd < signal_line and price > upper:
-        return "STRONG_SELL"
+def calculate_bollinger(prices):
+    df = pd.DataFrame(prices, columns=["price"])
+    bb = ta.volatility.BollingerBands(df["price"])
+    upper = bb.bollinger_hband().iloc[-1]
+    middle = bb.bollinger_mavg().iloc[-1]
+    lower = bb.bollinger_lband().iloc[-1]
+    return upper, middle, lower
+
+# ✅ NEW: Detect Candle Trend Direction (Last 3 candles)
+def detect_trend_direction(prices):
+    if len(prices) < 3:
+        return "neutral"
+    if prices[-3] < prices[-2] < prices[-1]:
+        return "bullish"
+    if prices[-3] > prices[-2] > prices[-1]:
+        return "bearish"
+    return "neutral"
+
+# ✅ Detect signal type (Aggressive + Trend-Based)
+def detect_signal_type(rsi, macd, signal_line, price, upper, lower, trend):
+    # Strong BUY
+    if trend == "bullish":
+        if rsi < 40 and macd > signal_line and price < lower:
+            return "STRONG_BUY"
+        if macd > signal_line and rsi > 55 and price < upper:
+            return "STRONG_BUY"
     
-    # Slightly less conservative conditions for strong signals
-    if macd > signal_line and rsi > 58 and price < upper:
-        return "STRONG_BUY"
-    if macd < signal_line and rsi < 42 and price > lower:
-        return "STRONG_SELL"
+    # Strong SELL
+    if trend == "bearish":
+        if rsi > 60 and macd < signal_line and price > upper:
+            return "STRONG_SELL"
+        if macd < signal_line and rsi < 45 and price > lower:
+            return "STRONG_SELL"
     
-    # Medium strength buy/sell still valid
+    # Weak signals
     if macd > signal_line and rsi >= 50:
         return "WEAK_BUY"
     if macd < signal_line and rsi < 50:
         return "WEAK_SELL"
-    
-    # Neutral fallback
-    return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
 
+    return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
 
 # ✅ Get message by signal type
 def get_random_message(signal_type):
@@ -253,12 +262,11 @@ def generate_trade_signal(instrument):
     now = time.time()
     cache = last_signal_data.get(instrument)
 
-    # ✅ Return cached signal type within 5 minutes
-    if cache and now - cache["timestamp"] < 300:
+    # ✅ Cache now only 2 minutes (aggressive but safe)
+    if cache and now - cache["timestamp"] < 120:
         print(f"🔁 Cached signal_type: {cache['signal_type']}")
         return get_random_message(cache["signal_type"])
 
-    # ✅ Instrument symbol map
     symbol_map = {
         "BTC": "BTC-USD",
         "ETH": "ETH-USD",
@@ -268,7 +276,6 @@ def generate_trade_signal(instrument):
         "IXIC": "^IXIC"
     }
 
-    # ✅ Gold (XAU) via Metals API
     if instrument in ["XAU", "XAUUSD"]:
         price = get_gold_price()
         if price is None:
@@ -282,19 +289,21 @@ def generate_trade_signal(instrument):
         if not prices or price is None:
             return f"⚠️ No valid price data for {instrument}"
 
-    # ✅ Indicators
     rsi = calculate_rsi(prices)
     macd, signal_line = calculate_macd(prices)
     upper, middle, lower = calculate_bollinger(prices)
+    trend = detect_trend_direction(prices)
 
-    # ✅ Signal logic
-    signal_type = detect_signal_type(rsi, macd, signal_line, price, upper, lower)
+    signal_type = detect_signal_type(rsi, macd, signal_line, price, upper, lower, trend)
+
     last_signal_data[instrument] = {
         "timestamp": now,
         "price": price,
         "signal_type": signal_type
     }
+
     return get_random_message(signal_type)
+
 
 # ✅ Flask API
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
