@@ -223,39 +223,33 @@ def detect_trend_direction(prices):
         return "bearish"
     return "neutral"
 
-# ✅ Detect signal type (Aggressive + Trend-Based)
+# ✅ FINAL VERSION: Trend + Indicator Signal Logic
 def detect_signal_type(rsi, macd, signal_line, price, upper, lower, trend):
-    # Strong BUY
     if trend == "bullish":
-        if rsi < 40 and macd > signal_line and price < lower:
-            return "STRONG_BUY"
         if macd > signal_line and rsi > 55 and price < upper:
             return "STRONG_BUY"
-    
-    # Strong SELL
-    if trend == "bearish":
-        if rsi > 60 and macd < signal_line and price > upper:
-            return "STRONG_SELL"
+        elif macd > signal_line or rsi > 50:
+            return "WEAK_BUY"
+        else:
+            return "WEAK_BUY"
+
+    elif trend == "bearish":
         if macd < signal_line and rsi < 45 and price > lower:
             return "STRONG_SELL"
-    
-    # Weak signals
-    if macd > signal_line and rsi >= 50:
-        return "WEAK_BUY"
-    if macd < signal_line and rsi < 50:
-        return "WEAK_SELL"
+        elif macd < signal_line or rsi < 50:
+            return "WEAK_SELL"
+        else:
+            return "WEAK_SELL"
 
-    return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
+    else:
+        # If trend is neutral, fallback logic
+        if macd > signal_line and rsi >= 50:
+            return "WEAK_BUY"
+        elif macd < signal_line and rsi < 50:
+            return "WEAK_SELL"
+        else:
+            return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
 
-# ✅ Get message by signal type
-def get_random_message(signal_type):
-    if signal_type == "STRONG_BUY":
-        return random.choice(STRONG_BUY_MESSAGES)
-    elif signal_type == "STRONG_SELL":
-        return random.choice(STRONG_SELL_MESSAGES)
-    elif signal_type == "WEAK_SELL":
-        return random.choice(WEAK_SELL_MESSAGES)
-    return random.choice(WEAK_BUY_MESSAGES)
 
 # ✅ Main Hybrid Signal Logic
 def generate_trade_signal(instrument):
