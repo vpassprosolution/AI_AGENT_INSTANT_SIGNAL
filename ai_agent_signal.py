@@ -8,11 +8,6 @@ import pandas as pd
 import time
 import random
 
-# Try importing 'ta'
-try:
-    import ta
-except ModuleNotFoundError:
-    raise ModuleNotFoundError("The 'ta' library is not installed. Please run 'pip install ta'")
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -86,14 +81,17 @@ def get_gold_price():
 
 def fetch_real_prices(symbol):
     try:
-        data = yf.Ticker(symbol).history(period="2d", interval="5m")
+        # ✅ Fetch 30x M1 candles (most recent 30 minutes)
+        data = yf.Ticker(symbol).history(period="1d", interval="1m")
         if not data.empty and len(data) >= 30:
             close_prices = list(data["Close"].values[-30:])
             latest_price = round(close_prices[-1], 2)
+            print(f"✅ {symbol} | M1 Last Price: {latest_price}")
             return close_prices, latest_price
     except Exception as e:
         print(f"❌ Error fetching data for {symbol}: {e}")
     return None, None
+
 
 
 # ✅ Signal Messages
@@ -205,25 +203,7 @@ def get_random_message(signal_type):
     else:
         return "⚠️ Unable to determine signal at this time."
 
-# ✅ Indicator Calculations
-def calculate_rsi(prices):
-    df = pd.DataFrame(prices, columns=["price"])
-    return ta.momentum.RSIIndicator(df["price"], window=14).rsi().iloc[-1]
 
-def calculate_macd(prices):
-    df = pd.DataFrame(prices, columns=["price"])
-    macd_obj = ta.trend.MACD(df["price"])
-    macd = macd_obj.macd().iloc[-1]
-    signal = macd_obj.macd_signal().iloc[-1]
-    return macd, signal
-
-def calculate_bollinger(prices):
-    df = pd.DataFrame(prices, columns=["price"])
-    bb = ta.volatility.BollingerBands(df["price"])
-    upper = bb.bollinger_hband().iloc[-1]
-    middle = bb.bollinger_mavg().iloc[-1]
-    lower = bb.bollinger_lband().iloc[-1]
-    return upper, middle, lower
 
 # ✅ NEW: Detect Candle Trend Direction (Last 3 candles)
 def detect_trend_direction(prices):
@@ -235,32 +215,7 @@ def detect_trend_direction(prices):
         return "bearish"
     return "neutral"
 
-# ✅ FINAL VERSION: Trend + Indicator Signal Logic
-def detect_signal_type(rsi, macd, signal_line, price, upper, lower, trend):
-    if trend == "bullish":
-        if macd > signal_line and rsi > 55 and price < upper:
-            return "STRONG_BUY"
-        elif macd > signal_line or rsi > 50:
-            return "WEAK_BUY"
-        else:
-            return "WEAK_BUY"
 
-    elif trend == "bearish":
-        if macd < signal_line and rsi < 45 and price > lower:
-            return "STRONG_SELL"
-        elif macd < signal_line or rsi < 50:
-            return "WEAK_SELL"
-        else:
-            return "WEAK_SELL"
-
-    else:
-        # If trend is neutral, fallback logic
-        if macd > signal_line and rsi >= 50:
-            return "WEAK_BUY"
-        elif macd < signal_line and rsi < 50:
-            return "WEAK_SELL"
-        else:
-            return "WEAK_BUY" if rsi >= 50 else "WEAK_SELL"
 
 
 # ✅ Main Hybrid Signal Logic (no timeframe mention in output)
@@ -268,8 +223,8 @@ def generate_trade_signal(instrument):
     now = time.time()
     cache = last_signal_data.get(instrument)
 
-    # ✅ Cache now only 2 minutes (aggressive but safe)
-    if cache and now - cache["timestamp"] < 120:
+    # ✅ Cache only 60 seconds
+    if cache and now - cache["timestamp"] < 60:
         print(f"🔁 Cached signal_type: {cache['signal_type']}")
         return get_random_message(cache["signal_type"])
 
@@ -295,12 +250,15 @@ def generate_trade_signal(instrument):
         if not prices or price is None:
             return f"⚠️ No valid price data for {instrument}"
 
-    rsi = calculate_rsi(prices)
-    macd, signal_line = calculate_macd(prices)
-    upper, middle, lower = calculate_bollinger(prices)
+    # ✅ Only trend-based logic
     trend = detect_trend_direction(prices)
 
-    signal_type = detect_signal_type(rsi, macd, signal_line, price, upper, lower, trend)
+    if trend == "bullish":
+        signal_type = "STRONG_BUY"
+    elif trend == "bearish":
+        signal_type = "STRONG_SELL"
+    else:
+        signal_type = random.choice(["WEAK_BUY", "WEAK_SELL"])
 
     last_signal_data[instrument] = {
         "timestamp": now,
