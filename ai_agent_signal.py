@@ -6,9 +6,20 @@ import numpy as np
 import logging
 import pandas as pd
 import time
+import redis
+
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
+
+# Redis connection (paste right below)
+redis_client = redis.StrictRedis.from_url(
+    "redis://default:SVvGFFWHscRbAxcSPswMmyhzXLfhIDyk@yamanote.proxy.rlwy.net:12288",
+    decode_responses=True
+)
+
+
 
 # ✅ Cache for 60 seconds
 last_signal_data = {}
@@ -99,13 +110,18 @@ def get_fixed_message(signal_type):
         return "⚠️ Unable to determine signal."
 
 
-# ✅ Aggressive Signal Generator
+# ✅ Aggressive Signal Generator using Redis
 def generate_trade_signal(instrument):
     now = time.time()
-    cache = last_signal_data.get(instrument)
-    if cache and now - cache["timestamp"] < 60:
-        print(f"🔁 Cached signal_type: {cache['signal_type']}")
-        return get_fixed_message(cache["signal_type"])
+    redis_key = f"signal_cache:{instrument}"
+
+    # ✅ Check Redis for cached signal
+    cached = redis_client.hgetall(redis_key)
+    if cached:
+        timestamp = float(cached.get("timestamp", 0))
+        if now - timestamp < 60:  # ⏱️ 60 sec cache
+            print(f"🔁 Cached Redis signal: {cached['signal_type']}")
+            return get_fixed_message(cached["signal_type"])
 
     symbol_map = {
         "BTC": "BTC-USD",
@@ -162,11 +178,13 @@ def generate_trade_signal(instrument):
     else:
         signal_type = "WEAK_BUY" if rsi_value < 50 else "WEAK_SELL"
 
-    last_signal_data[instrument] = {
+    # ✅ Save to Redis
+    redis_client.hset(redis_key, mapping={
         "timestamp": now,
         "price": price,
         "signal_type": signal_type
-    }
+    })
+    redis_client.expire(redis_key, 120)  # Optional: Expire after 2 mins
 
     return get_fixed_message(signal_type)
 
