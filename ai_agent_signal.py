@@ -28,17 +28,44 @@ def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
 # ✅ GOLD from Metals API
-def get_gold_price():
-    url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
+# ✅ Get real candle for Gold from Finnhub (XAU/USD)
+def get_finnhub_gold_candles():
+    redis_key = "candle:GOLD:M1"
+    cached = redis_client.get(redis_key)
+    if cached:
+        print("♻️ Cached candle used for GOLD")
+        return pd.DataFrame(json.loads(cached))
+
+    url = "https://finnhub.io/api/v1/forex/candle"
+    now = int(time.time())
+    from_time = now - (60 * 30)
+    params = {
+        "symbol": "OANDA:XAU_USD",
+        "resolution": "1",
+        "from": from_time,
+        "to": now,
+        "token": os.getenv("FINNHUB_API_KEY")
+    }
+
     try:
-        res = requests.get(url, timeout=10).json()
-        if "rates" in res and "USDXAU" in res["rates"]:
-            price = round(res["rates"]["USDXAU"], 2)
-            print(f"✅ GOLD PRICE: {price}")
-            return price
+        res = requests.get(url, params=params, timeout=10).json()
+        if "c" not in res or len(res["c"]) < 30:
+            return None
+
+        df = pd.DataFrame({
+            "time": res["t"],
+            "open": res["o"],
+            "high": res["h"],
+            "low": res["l"],
+            "close": res["c"]
+        })
+        redis_client.set(redis_key, json.dumps(df.to_dict(orient="records")), ex=60)
+        print("✅ Fetched GOLD candles from Finnhub")
+        return df
     except Exception as e:
-        print(f"❌ Error fetching Gold price: {e}")
-    return None
+        print(f"❌ Finnhub GOLD candle error: {e}")
+        return None
+
 
 # ✅ Get data from TwelveData (1min x 30 candles)
 def get_twelvedata_history(symbol):
@@ -111,11 +138,13 @@ def generate_trade_signal(instrument):
     }
 
     if instrument in ["XAU", "XAUUSD"]:
-        price = get_gold_price()
-        if price is None:
-            return "⚠️ Failed to get gold price."
-        prices = [price - 0.3, price - 0.1, price] * 10  # simulate candle
-        volume_spike = True
+        df = get_finnhub_gold_candles()
+        if df is None or len(df) < 30:
+            return "⚠️ Failed to get GOLD data."
+        df["close"] = df["close"].astype(float)
+        prices = df["close"].values
+        price = round(prices[-1], 2)
+        volume_spike = True  # No volume from Finnhub
     elif instrument in tw_symbols:
         df = get_twelvedata_history(tw_symbols[instrument])
         if df is None or len(df) < 30:
@@ -153,6 +182,7 @@ def generate_trade_signal(instrument):
     redis_client.expire(redis_key, 120)
 
     return get_fixed_message(signal_type)
+
 
 # ✅ Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
