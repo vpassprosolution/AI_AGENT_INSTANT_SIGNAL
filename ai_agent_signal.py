@@ -1,3 +1,4 @@
+import os
 import time
 import logging
 import requests
@@ -26,7 +27,7 @@ def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
 
-# ✅ Candle from Yahoo, replace last price with Metals API real-time
+# ✅ GOLD Candle: Yahoo + replace final price with Metals API real-time
 def get_gold_candles_combined():
     try:
         df = yf.download("GC=F", interval="1m", period="2d", progress=False)
@@ -36,12 +37,12 @@ def get_gold_candles_combined():
         df = df.tail(120)
         df["close"] = df["Close"].astype(float)
 
-        # Replace last candle with Metals price
+        # Replace last price with Metals API
         url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
         res = requests.get(url, timeout=10).json()
         if "rates" in res and "USDXAU" in res["rates"]:
             df.iloc[-1, df.columns.get_loc("close")] = round(res["rates"]["USDXAU"], 2)
-            print("✅ GOLD candle from Yahoo + real-time Metals price")
+            print("✅ GOLD candle from Yahoo + real-time Metals price (last candle)")
             return df
         else:
             print("⚠️ Metals API failed, fallback to Yahoo candle only")
@@ -51,7 +52,7 @@ def get_gold_candles_combined():
         return None
 
 
-# ✅ For others: TwelveData
+# ✅ TwelveData for others
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
@@ -101,11 +102,11 @@ def detect_volume_spike(df):
 
 def get_fixed_message(signal_type):
     return {
-        "STRONG_BUY": "🔥 STRONG BUY SIGNAL - Naomi AI confirms aggressive upward momentum. 📈",
-        "STRONG_SELL": "📉 STRONG SELL SIGNAL - Naomi AI confirms strong bearish breakdown. 🔻",
-        "WEAK_BUY": "⚠️ BUY SIGNAL - Early bullish signs detected. 🟢",
-        "WEAK_SELL": "⚠️ SELL SIGNAL - Mild bearish shift forming. 🔸",
-    }.get(signal_type, "⚠️ Unable to determine signal.")
+        "STRONG_BUY": "🔥 STRONG BUY NOW!! Naomi AI detects aggressive bullish explosion forming. Enter with confidence. 🚀",
+        "WEAK_BUY": "🟢 BUY NOW !! - Subtle bullish strength detected by Naomi Assist. Possible upside incoming.",
+        "STRONG_SELL": "🔻 STRONG SELL NOW!! Naomi AI sees powerful bearish crash developing. High confidence short! ⚠️",
+        "WEAK_SELL": "🟠 SELL NOW !! - Mild bearish movement detected. Momentum shifting lower.",
+    }.get(signal_type, "⚠️ Naomi AI unable to detect clear signal. Market is neutral.")
 
 
 # ✅ Main Logic
@@ -147,6 +148,10 @@ def generate_trade_signal(instrument):
     macd, signal = calculate_macd(prices)
     boll_upper, boll_lower = calculate_bollinger_bands(prices)
 
+    # ✅ Handle BBand NaN fallback
+    if np.isnan(boll_upper) or np.isnan(boll_lower):
+        boll_upper, boll_lower = price + 2, price - 2
+
     print(f"📊 {instrument} | Price: {price}, Trend: {trend}, RSI: {rsi_value:.2f}, MACD: {macd:.2f}, Signal: {signal:.2f}, BBands: [{boll_lower:.2f}, {boll_upper:.2f}], Volume Spike: {volume_spike}")
 
     if trend == "bullish" and rsi_value < 70 and macd > signal and price < boll_upper and volume_spike:
@@ -170,6 +175,7 @@ def generate_trade_signal(instrument):
     return get_fixed_message(signal_type)
 
 
+# ✅ API Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
@@ -179,5 +185,6 @@ def get_signal(selected_instrument):
         return jsonify({"error": str(e)}), 500
 
 
+# ✅ Run
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000)
