@@ -2,7 +2,6 @@ import os
 import time
 import logging
 import requests
-import yfinance as yf
 import numpy as np
 import pandas as pd
 import redis
@@ -18,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 # ✅ Redis setup
 redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
-# ✅ Logging
+# ✅ Log setiap request
 @app.before_request
 def log_request_info():
     logging.info(f"📥 GET {request.url}")
@@ -27,7 +26,7 @@ def log_request_info():
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-# ✅ Get Gold price from Metals API
+# ✅ Gold price dari MetalsAPI
 def get_gold_price():
     url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
     try:
@@ -40,7 +39,7 @@ def get_gold_price():
         print(f"❌ Error fetching Gold price: {e}")
     return None
 
-# ✅ Get price & data from TwelveData
+# ✅ Price history dari TwelveData
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
@@ -53,7 +52,7 @@ def get_twelvedata_history(symbol):
         print(f"❌ Error TwelveData {symbol}: {e}")
         return None
 
-# ✅ Signal Utilities
+# ✅ Indicator functions
 def detect_trend_direction(prices):
     return (
         "bullish" if prices[-3] < prices[-2] < prices[-1]
@@ -94,21 +93,21 @@ def get_fixed_message(signal_type):
         "WEAK_SELL": "⚠️ SELL SIGNAL - Mild bearish shift forming. 🔸",
     }.get(signal_type, "⚠️ Unable to determine signal.")
 
-# ✅ Generate Signal Logic
+# ✅ Signal Generator
 def generate_trade_signal(instrument):
     now = time.time()
     redis_key = f"signal_cache:{instrument}"
 
-    # Check Redis
     cached = redis_client.hgetall(redis_key)
     if cached and now - float(cached.get("timestamp", 0)) < 60:
         print(f"🔁 Cached Redis signal: {cached['signal_type']}")
         return get_fixed_message(cached["signal_type"])
 
-    # Symbol mapping
     tw_symbols = {
-        "BTC": "BTC/USD", "ETH": "ETH/USD", "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
-        "DJI": "DJI", "IXIC": "IXIC"
+        "BTC": "BTC/USD", "ETH": "ETH/USD",
+        "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
+        "DJI": "US30/USD",  # ✅ Dow Jones
+        "IXIC": "NDX/USD"   # ✅ Nasdaq
     }
 
     if instrument in ["XAU", "XAUUSD"]:
@@ -147,7 +146,6 @@ def generate_trade_signal(instrument):
     else:
         signal_type = "WEAK_BUY" if rsi_value < 50 else "WEAK_SELL"
 
-    # Save to Redis
     redis_client.hset(redis_key, mapping={
         "timestamp": now,
         "price": price,
@@ -157,7 +155,7 @@ def generate_trade_signal(instrument):
 
     return get_fixed_message(signal_type)
 
-# ✅ Endpoint
+# ✅ API Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
