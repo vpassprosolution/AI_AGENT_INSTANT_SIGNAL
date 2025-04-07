@@ -6,6 +6,7 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import redis
+import json 
 
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
@@ -104,28 +105,37 @@ def generate_trade_signal(instrument):
         print(f"🔁 Cached Redis signal: {cached['signal_type']}")
         return get_fixed_message(cached["signal_type"])
 
-    # ✅ TwelveData symbols
+    # ✅ TwelveData supported instruments
     tw_symbols = {
-    "BTC": "BTC/USD", "ETH": "ETH/USD",
-    "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
-    "DJI": "DIA", "IXIC": "QQQ"
-}
-
+        "BTC": "BTC/USD", "ETH": "ETH/USD",
+        "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
+        "DJI": "DIA", "IXIC": "QQQ"
+    }
 
     if instrument in ["XAU", "XAUUSD"]:
-        price = get_gold_price()
-        if price is None:
-            return "⚠️ Failed to get gold price."
-        prices = [price] * 30
-        trend = "neutral"; rsi_value = 50; macd = 0; signal = 0
-        boll_upper, boll_lower = price + 2, price - 2
-        volume_spike = False
+        # ✅ GOLD read candle from Redis
+        candle_data = redis_client.get("candle:XAUUSD:M5")
+        if not candle_data:
+            return "⚠️ Gold data not ready yet. Try again shortly."
+
+        df = pd.DataFrame(json.loads(candle_data))
+        df["close"] = df["close"].astype(float)
+        prices = df["close"].values
+        price = round(prices[-1], 2)
+
+        trend = detect_trend_direction(prices)
+        rsi_series = calculate_rsi(prices)
+        rsi_value = rsi_series.iloc[-1] if not rsi_series.isna().all() else 50
+        macd, signal = calculate_macd(prices)
+        boll_upper, boll_lower = calculate_bollinger_bands(prices)
+        volume_spike = True  # Volume tak ada dalam Redis candle, assume True
     elif instrument in tw_symbols:
         df = get_twelvedata_history(tw_symbols[instrument])
         if df is None or len(df) < 30:
             return f"⚠️ No data for {instrument}"
         prices = df["close"].values
         price = round(prices[-1], 2)
+
         trend = detect_trend_direction(prices)
         rsi_series = calculate_rsi(prices)
         rsi_value = rsi_series.iloc[-1] if not rsi_series.isna().all() else 50
@@ -156,6 +166,7 @@ def generate_trade_signal(instrument):
     redis_client.expire(redis_key, 120)
 
     return get_fixed_message(signal_type)
+
 
 # ✅ Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
