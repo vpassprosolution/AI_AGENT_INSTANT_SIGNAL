@@ -12,28 +12,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
-# ✅ Redis connection (Railway friendly)
+# ✅ Redis connection from Railway ENV
 redis_client = redis.StrictRedis.from_url(
     os.getenv("REDIS_URL"),
     decode_responses=True
 )
 
-# ✅ Cache tracking
-last_signal_data = {}
-
 @app.before_request
 def log_request_info():
-    logging.debug(f"📥 Incoming request: {request.method} {request.url}")
+    logging.info(f"📥 {request.method} {request.url}")
 
 @app.route('/')
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-# ✅ Get Gold Price from Metals API
+# ✅ Get Gold Price
 def get_gold_price():
-    url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
+    api_key = os.getenv("METALS_API_KEY")
+    url = f"https://metals-api.com/api/latest?access_key={api_key}&base=USD&symbols=XAU"
     try:
         response = requests.get(url, timeout=10)
         data = response.json()
@@ -43,13 +41,13 @@ def get_gold_price():
 
     if "rates" in data and "USDXAU" in data["rates"]:
         price = round(data["rates"]["USDXAU"], 2)
-        print(f"✅ GOLD PRICE FROM API: {price}")
+        print(f"✅ GOLD PRICE: {price}")
         return price
 
-    print("⚠️ No Gold price found in API response!")
+    print("⚠️ No Gold price found in API response.")
     return None
 
-# ✅ Trend Logic
+# ✅ Indicator Calculations
 def detect_trend_direction(prices):
     if len(prices) < 3:
         return "neutral"
@@ -96,17 +94,15 @@ def get_fixed_message(signal_type):
     }
     return messages.get(signal_type, "⚠️ Unable to determine signal.")
 
-# ✅ Generate Aggressive Signal
+# ✅ Main Signal Logic
 def generate_trade_signal(instrument):
     now = time.time()
     redis_key = f"signal_cache:{instrument}"
 
-    # ✅ Check Redis cache
     cached = redis_client.hgetall(redis_key)
     if cached:
         timestamp = float(cached.get("timestamp", 0))
         if now - timestamp < 60:
-            print(f"🔁 Cached Redis signal: {cached['signal_type']}")
             return get_fixed_message(cached["signal_type"])
 
     symbol_map = {
@@ -129,14 +125,12 @@ def generate_trade_signal(instrument):
         symbol = symbol_map.get(instrument)
         if not symbol:
             return f"⚠️ Invalid instrument: {instrument}"
-
         try:
             data = yf.Ticker(symbol).history(period="1d", interval="1m")
             if data.empty or len(data) < 30:
                 return f"⚠️ No valid price data for {instrument}"
         except Exception as e:
-            print(f"❌ Error fetching {instrument} data: {e}")
-            return f"⚠️ Error fetching price data."
+            return f"⚠️ Error fetching data: {e}"
 
         prices = list(data["Close"].values[-30:])
         price = round(prices[-1], 2)
@@ -146,8 +140,6 @@ def generate_trade_signal(instrument):
         macd, signal = calculate_macd(prices)
         boll_upper, boll_lower = calculate_bollinger_bands(prices)
         volume_spike = detect_volume_spike(data)
-
-    print(f"📊 {instrument} | Price: {price}, Trend: {trend}, RSI: {rsi_value:.2f}, MACD: {macd:.2f}, Signal: {signal:.2f}, BBands: [{boll_lower:.2f}, {boll_upper:.2f}], Volume Spike: {volume_spike}")
 
     if trend == "bullish" and rsi_value < 70 and macd > signal and price < boll_upper and volume_spike:
         signal_type = "STRONG_BUY"
@@ -173,14 +165,12 @@ def generate_trade_signal(instrument):
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
-        print(f"🟢 API Request: {selected_instrument}")
         signal = generate_trade_signal(selected_instrument)
         return jsonify({"instrument": selected_instrument, "signal": signal})
     except Exception as e:
-        print(f"❌ Error Processing {selected_instrument}: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ✅ Start Flask
+# ✅ Run Server
 if __name__ == '__main__':
-    print("🚀 AI Signal Server Running...")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print("🚀 AI Agent Signal API Running...")
+    app.run(debug=False, host='0.0.0.0', port=5000)
