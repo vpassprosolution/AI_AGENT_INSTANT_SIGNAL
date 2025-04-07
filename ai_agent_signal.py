@@ -40,7 +40,7 @@ def get_finnhub_gold_candles():
     now = int(time.time())
     from_time = now - (60 * 30)
     params = {
-        "symbol": "OANDA:XAU_USD",
+        "symbol": "FOREX:XAUUSD",  # ✅ FIXED: free-access symbol
         "resolution": "1",
         "from": from_time,
         "to": now,
@@ -49,7 +49,7 @@ def get_finnhub_gold_candles():
 
     try:
         res = requests.get(url, params=params, timeout=10).json()
-        print("🧪 Finnhub response:", res)  # <--- ADD THIS
+        print("🧪 Finnhub response:", res)
 
         if "c" not in res or len(res["c"]) < 30:
             return None
@@ -67,6 +67,7 @@ def get_finnhub_gold_candles():
     except Exception as e:
         print(f"❌ Finnhub GOLD candle error: {e}")
         return None
+
 
 
 
