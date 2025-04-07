@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import redis
 import json
+import yfinance as yf
 
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
@@ -27,13 +28,37 @@ def log_request_info():
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-# ✅ Get data from TwelveData (1min x 30 candles)
+
+# ✅ GOLD from Yahoo Finance (real-time 1m candles)
+def get_gold_candles_yahoo():
+    redis_key = "candle:GOLD:M1"
+    cached = redis_client.get(redis_key)
+    if cached:
+        print("♻️ Cached GOLD candle used (Yahoo)")
+        return pd.DataFrame(json.loads(cached))
+
+    try:
+        df = yf.download(tickers="XAUUSD=X", interval="1m", period="30m", progress=False)
+        if df is None or df.empty or len(df) < 30:
+            return None
+        df.reset_index(inplace=True)
+        df["timestamp"] = df["Datetime"].astype(str)
+        df.rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close"}, inplace=True)
+        result = df[["timestamp", "open", "high", "low", "close"]].to_dict(orient="records")
+        redis_client.set(redis_key, json.dumps(result), ex=60)
+        print("✅ GOLD candles fetched from Yahoo")
+        return df
+    except Exception as e:
+        print(f"❌ Error fetching GOLD from Yahoo: {e}")
+        return None
+
+
+# ✅ Get data from TwelveData (for other assets)
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
         res = requests.get(url, timeout=10).json()
         if "values" not in res:
-            print(f"❌ TwelveData error: {res}")
             return None
         df = pd.DataFrame(res["values"])
         df["close"] = df["close"].astype(float)
@@ -41,6 +66,7 @@ def get_twelvedata_history(symbol):
     except Exception as e:
         print(f"❌ Error TwelveData {symbol}: {e}")
         return None
+
 
 # ✅ Indicators
 def detect_trend_direction(prices):
@@ -83,6 +109,7 @@ def get_fixed_message(signal_type):
         "WEAK_SELL": "⚠️ SELL SIGNAL - Mild bearish shift forming. 🔸",
     }.get(signal_type, "⚠️ Unable to determine signal.")
 
+
 # ✅ Main Logic
 def generate_trade_signal(instrument):
     now = time.time()
@@ -92,24 +119,29 @@ def generate_trade_signal(instrument):
         print(f"🔁 Cached Redis signal: {cached['signal_type']}")
         return get_fixed_message(cached["signal_type"])
 
-    # ✅ TwelveData symbols
     tw_symbols = {
-        "XAUUSD": "XAU/USD",  # ✅ Gold
         "BTC": "BTC/USD", "ETH": "ETH/USD",
         "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
         "DJI": "DIA", "IXIC": "QQQ"
     }
 
-    if instrument not in tw_symbols:
+    if instrument in ["XAU", "XAUUSD"]:
+        df = get_gold_candles_yahoo()
+        if df is None or len(df) < 30:
+            return "⚠️ Failed to get GOLD data."
+        df["close"] = df["close"].astype(float)
+        prices = df["close"].values
+        price = round(prices[-1], 2)
+        volume_spike = True  # Yahoo has no volume
+    elif instrument in tw_symbols:
+        df = get_twelvedata_history(tw_symbols[instrument])
+        if df is None or len(df) < 30:
+            return f"⚠️ No data for {instrument}"
+        prices = df["close"].values
+        price = round(prices[-1], 2)
+        volume_spike = detect_volume_spike(df)
+    else:
         return f"⚠️ Invalid instrument: {instrument}"
-
-    df = get_twelvedata_history(tw_symbols[instrument])
-    if df is None or len(df) < 30:
-        return f"⚠️ No data for {instrument}"
-    
-    prices = df["close"].values
-    price = round(prices[-1], 2)
-    volume_spike = detect_volume_spike(df)
 
     trend = detect_trend_direction(prices)
     rsi_series = calculate_rsi(prices)
@@ -138,6 +170,7 @@ def generate_trade_signal(instrument):
     redis_client.expire(redis_key, 120)
 
     return get_fixed_message(signal_type)
+
 
 # ✅ Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
