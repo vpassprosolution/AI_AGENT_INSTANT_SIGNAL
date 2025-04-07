@@ -2,11 +2,10 @@ import os
 import time
 import logging
 import requests
-import yfinance as yf
 import numpy as np
 import pandas as pd
 import redis
-import json 
+import json
 
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
@@ -19,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 # ✅ Redis connection
 redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
-# ✅ Log requests
+# ✅ Log request
 @app.before_request
 def log_request_info():
     logging.info(f"📥 GET {request.url}")
@@ -41,7 +40,7 @@ def get_gold_price():
         print(f"❌ Error fetching Gold price: {e}")
     return None
 
-# ✅ Get price data from TwelveData
+# ✅ Get data from TwelveData (1min x 30 candles)
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
@@ -105,7 +104,6 @@ def generate_trade_signal(instrument):
         print(f"🔁 Cached Redis signal: {cached['signal_type']}")
         return get_fixed_message(cached["signal_type"])
 
-    # ✅ TwelveData supported instruments
     tw_symbols = {
         "BTC": "BTC/USD", "ETH": "ETH/USD",
         "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
@@ -113,37 +111,26 @@ def generate_trade_signal(instrument):
     }
 
     if instrument in ["XAU", "XAUUSD"]:
-        # ✅ GOLD read candle from Redis
-        candle_data = redis_client.get("candle:XAUUSD:M5")
-        if not candle_data:
-            return "⚠️ Gold data not ready yet. Try again shortly."
-
-        df = pd.DataFrame(json.loads(candle_data))
-        df["close"] = df["close"].astype(float)
-        prices = df["close"].values
-        price = round(prices[-1], 2)
-
-        trend = detect_trend_direction(prices)
-        rsi_series = calculate_rsi(prices)
-        rsi_value = rsi_series.iloc[-1] if not rsi_series.isna().all() else 50
-        macd, signal = calculate_macd(prices)
-        boll_upper, boll_lower = calculate_bollinger_bands(prices)
-        volume_spike = True  # Volume tak ada dalam Redis candle, assume True
+        price = get_gold_price()
+        if price is None:
+            return "⚠️ Failed to get gold price."
+        prices = [price - 0.3, price - 0.1, price] * 10  # simulate candle
+        volume_spike = True
     elif instrument in tw_symbols:
         df = get_twelvedata_history(tw_symbols[instrument])
         if df is None or len(df) < 30:
             return f"⚠️ No data for {instrument}"
         prices = df["close"].values
         price = round(prices[-1], 2)
-
-        trend = detect_trend_direction(prices)
-        rsi_series = calculate_rsi(prices)
-        rsi_value = rsi_series.iloc[-1] if not rsi_series.isna().all() else 50
-        macd, signal = calculate_macd(prices)
-        boll_upper, boll_lower = calculate_bollinger_bands(prices)
         volume_spike = detect_volume_spike(df)
     else:
         return f"⚠️ Invalid instrument: {instrument}"
+
+    trend = detect_trend_direction(prices)
+    rsi_series = calculate_rsi(prices)
+    rsi_value = rsi_series.iloc[-1] if not rsi_series.isna().all() else 50
+    macd, signal = calculate_macd(prices)
+    boll_upper, boll_lower = calculate_bollinger_bands(prices)
 
     print(f"📊 {instrument} | Price: {price}, Trend: {trend}, RSI: {rsi_value:.2f}, MACD: {macd:.2f}, Signal: {signal:.2f}, BBands: [{boll_lower:.2f}, {boll_upper:.2f}], Volume Spike: {volume_spike}")
 
@@ -166,7 +153,6 @@ def generate_trade_signal(instrument):
     redis_client.expire(redis_key, 120)
 
     return get_fixed_message(signal_type)
-
 
 # ✅ Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])

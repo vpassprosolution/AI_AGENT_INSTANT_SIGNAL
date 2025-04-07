@@ -6,4 +6,3 @@ yfinance
 gunicorn
 redis
 python-dotenv
-websockets
