@@ -7,36 +7,36 @@ import logging
 import pandas as pd
 import time
 import redis
+from dotenv import load_dotenv
 
+load_dotenv()
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-
-# Redis connection (paste right below)
-redis_client = redis.StrictRedis.from_url(
-    "redis://default:SVvGFFWHscRbAxcSPswMmyhzXLfhIDyk@yamanote.proxy.rlwy.net:12288",
+# ✅ Redis connection from Railway ENV
+redis_client = redis.StrictRedis(
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT")),
+    password=os.getenv("REDIS_PASSWORD"),
     decode_responses=True
 )
 
-
-
-# ✅ Cache for 60 seconds
+# ✅ Cache tracking
 last_signal_data = {}
 
 @app.before_request
 def log_request_info():
     logging.debug(f"📥 Incoming request: {request.method} {request.url}")
-    print(f"📥 Incoming request: {request.method} {request.url}")
 
 @app.route('/')
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
+# ✅ Get Gold Price from Metals API
 
-# ✅ Get Gold Price
 def get_gold_price():
-    url = "https://metals-api.com/api/latest?access_key=cflqymfx6mzfe1pw3p4zgy13w9gj12z4aavokqd5xw4p8xeplzlwyh64fvrv&base=USD&symbols=XAU"
+    url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
     try:
         response = requests.get(url)
         data = response.json()
@@ -52,8 +52,8 @@ def get_gold_price():
     print("⚠️ No Gold price found in API response!")
     return None
 
+# ✅ Trend Logic
 
-# ✅ Detect Candle Trend Direction
 def detect_trend_direction(prices):
     if len(prices) < 3:
         return "neutral"
@@ -63,7 +63,6 @@ def detect_trend_direction(prices):
         return "bearish"
     return "neutral"
 
-# ✅ Calculate RSI
 def calculate_rsi(prices, period=14):
     delta = pd.Series(prices).diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
@@ -71,7 +70,6 @@ def calculate_rsi(prices, period=14):
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
-# ✅ Calculate MACD
 def calculate_macd(prices):
     exp1 = pd.Series(prices).ewm(span=12, adjust=False).mean()
     exp2 = pd.Series(prices).ewm(span=26, adjust=False).mean()
@@ -79,7 +77,6 @@ def calculate_macd(prices):
     signal_line = macd_line.ewm(span=9, adjust=False).mean()
     return macd_line.iloc[-1], signal_line.iloc[-1]
 
-# ✅ Calculate Bollinger Bands
 def calculate_bollinger_bands(prices, window=20):
     series = pd.Series(prices)
     ma = series.rolling(window=window).mean()
@@ -88,48 +85,38 @@ def calculate_bollinger_bands(prices, window=20):
     lower_band = ma - (std * 2)
     return upper_band.iloc[-1], lower_band.iloc[-1]
 
-# ✅ Volume Spike Detection
 def detect_volume_spike(data):
     if 'Volume' in data:
         vol = data['Volume'].tail(4).values
         return vol[-1] > np.mean(vol[:-1]) * 1.3
     return False
 
-
-# ✅ Fixed Signal Message
 def get_fixed_message(signal_type):
-    if signal_type == "STRONG_BUY":
-        return "🔥 STRONG BUY SIGNAL - Naomi AI confirms aggressive upward momentum. All indicators aligned. 📈"
-    elif signal_type == "STRONG_SELL":
-        return "📉 STRONG SELL SIGNAL - Naomi AI confirms strong bearish breakdown. Indicators confirm reversal. 🔻"
-    elif signal_type == "WEAK_BUY":
-        return "⚠️ BUY SIGNAL - Early bullish signs detected. Watch closely for confirmation. 🟢"
-    elif signal_type == "WEAK_SELL":
-        return "⚠️ SELL SIGNAL - Mild bearish shift forming. Possible fade incoming. 🔸"
-    else:
-        return "⚠️ Unable to determine signal."
+    messages = {
+        "STRONG_BUY": "🔥 STRONG BUY SIGNAL - Naomi AI confirms aggressive upward momentum. All indicators aligned. 📈",
+        "STRONG_SELL": "📉 STRONG SELL SIGNAL - Naomi AI confirms strong bearish breakdown. Indicators confirm reversal. 🔻",
+        "WEAK_BUY": "⚠️ BUY SIGNAL - Early bullish signs detected. Watch closely for confirmation. 🟢",
+        "WEAK_SELL": "⚠️ SELL SIGNAL - Mild bearish shift forming. Possible fade incoming. 🔸",
+    }
+    return messages.get(signal_type, "⚠️ Unable to determine signal.")
 
+# ✅ Generate Aggressive Signal
 
-# ✅ Aggressive Signal Generator using Redis
 def generate_trade_signal(instrument):
     now = time.time()
     redis_key = f"signal_cache:{instrument}"
 
-    # ✅ Check Redis for cached signal
+    # ✅ Check Redis first
     cached = redis_client.hgetall(redis_key)
     if cached:
         timestamp = float(cached.get("timestamp", 0))
-        if now - timestamp < 60:  # ⏱️ 60 sec cache
+        if now - timestamp < 60:
             print(f"🔁 Cached Redis signal: {cached['signal_type']}")
             return get_fixed_message(cached["signal_type"])
 
     symbol_map = {
-        "BTC": "BTC-USD",
-        "ETH": "ETH-USD",
-        "EURUSD": "EURUSD=X",
-        "GBPUSD": "GBPUSD=X",
-        "DJI": "^DJI",
-        "IXIC": "^IXIC"
+        "BTC": "BTC-USD", "ETH": "ETH-USD", "EURUSD": "EURUSD=X", "GBPUSD": "GBPUSD=X",
+        "DJI": "^DJI", "IXIC": "^IXIC"
     }
 
     if instrument in ["XAU", "XAUUSD"]:
@@ -178,18 +165,16 @@ def generate_trade_signal(instrument):
     else:
         signal_type = "WEAK_BUY" if rsi_value < 50 else "WEAK_SELL"
 
-    # ✅ Save to Redis
     redis_client.hset(redis_key, mapping={
         "timestamp": now,
         "price": price,
         "signal_type": signal_type
     })
-    redis_client.expire(redis_key, 120)  # Optional: Expire after 2 mins
+    redis_client.expire(redis_key, 120)  # 2 minutes TTL
 
     return get_fixed_message(signal_type)
 
-
-# ✅ Flask API Endpoint
+# ✅ API Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
@@ -200,7 +185,7 @@ def get_signal(selected_instrument):
         print(f"❌ Error Processing {selected_instrument}: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ✅ Start Flask
+# ✅ Start Flask Server
 if __name__ == '__main__':
     print("🚀 AI Signal Server Running...")
     app.run(debug=True, host='0.0.0.0', port=5000)
