@@ -5,3 +5,4 @@ ta
 yfinance
 gunicorn
 redis
+python-dotenv
