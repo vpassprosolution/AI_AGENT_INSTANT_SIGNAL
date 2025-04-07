@@ -30,29 +30,19 @@ def home():
 
 
 # ✅ GOLD from Yahoo Finance (real-time 1m candles)
-def get_gold_candles_yahoo():
-    redis_key = "candle:GOLD:M1"
-    cached = redis_client.get(redis_key)
-    if cached:
-        print("♻️ Cached GOLD candle used (Yahoo)")
-        return pd.DataFrame(json.loads(cached))
-
+def get_gold_price_from_yahoo():
     try:
-        df = yf.download(tickers="GC=F", interval="1m", period="1d", progress=False)
-        if df is None or df.empty or len(df) < 30:
+        df = yf.download("GC=F", interval="1m", period="2d", progress=False)
+        if df.empty or "Close" not in df.columns:
+            print("❌ Gold data empty or missing 'Close'")
             return None
-        df = df.tail(30)
-        df.reset_index(inplace=True)
-        df["timestamp"] = df["Datetime"].astype(str)
-        df.rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close"}, inplace=True)
-        result = df[["timestamp", "open", "high", "low", "close"]].to_dict(orient="records")
-        redis_client.set(redis_key, json.dumps(result), ex=60)
-        print("✅ GOLD candles fetched from Yahoo (GC=F)")
+        df = df.tail(120)
+        df["close"] = df["Close"].astype(float)
+        print("✅ Gold candles from Yahoo downloaded (120 bars)")
         return df
     except Exception as e:
         print(f"❌ Error fetching GOLD from Yahoo: {e}")
         return None
-
 
 
 # ✅ Get data from TwelveData (for other assets)
@@ -128,10 +118,9 @@ def generate_trade_signal(instrument):
     }
 
     if instrument in ["XAU", "XAUUSD"]:
-        df = get_gold_candles_yahoo()
+        df = get_gold_price_from_yahoo()
         if df is None or len(df) < 30:
             return "⚠️ Failed to get GOLD data."
-        df["close"] = df["close"].astype(float)
         prices = df["close"].values
         price = round(prices[-1], 2)
         volume_spike = True  # Yahoo has no volume
