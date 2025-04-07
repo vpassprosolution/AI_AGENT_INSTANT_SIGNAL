@@ -26,33 +26,31 @@ def log_request_info():
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-
-# ✅ Candle from Yahoo, replace last price with Metals API real-time
+# ✅ Gold Candles: Yahoo (M1) + Last Candle from Metals API
 def get_gold_candles_combined():
     try:
         df = yf.download("GC=F", interval="1m", period="2d", progress=False)
         if df.empty or "Close" not in df.columns:
             print("❌ Yahoo Gold candle empty")
             return None
-        df = df.tail(120)
+        df = df.tail(119)
         df["close"] = df["Close"].astype(float)
 
-        # Replace last candle with Metals price
         url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
         res = requests.get(url, timeout=10).json()
         if "rates" in res and "USDXAU" in res["rates"]:
-            df.iloc[-1, df.columns.get_loc("close")] = round(res["rates"]["USDXAU"], 2)
-            print("✅ GOLD candle from Yahoo + real-time Metals price")
+            realtime_price = round(res["rates"]["USDXAU"], 2)
+            df = pd.concat([df, pd.DataFrame([{"close": realtime_price}])], ignore_index=True)
+            print("✅ GOLD candle from Yahoo + real-time Metals price (last candle)")
             return df
         else:
-            print("⚠️ Metals API failed, fallback to Yahoo candle only")
+            print("⚠️ Metals API failed, fallback to Yahoo only")
             return df
     except Exception as e:
         print(f"❌ Gold candle error: {e}")
         return None
 
-
-# ✅ For others: TwelveData
+# ✅ For Others: TwelveData (M1 x 30)
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
@@ -65,7 +63,6 @@ def get_twelvedata_history(symbol):
     except Exception as e:
         print(f"❌ Error TwelveData {symbol}: {e}")
         return None
-
 
 # ✅ Indicators
 def detect_trend_direction(prices):
@@ -107,7 +104,6 @@ def get_fixed_message(signal_type):
         "WEAK_BUY": "⚠️ BUY SIGNAL - Early bullish signs detected. 🟢",
         "WEAK_SELL": "⚠️ SELL SIGNAL - Mild bearish shift forming. 🔸",
     }.get(signal_type, "⚠️ Unable to determine signal.")
-
 
 # ✅ Main Logic
 def generate_trade_signal(instrument):
@@ -170,7 +166,6 @@ def generate_trade_signal(instrument):
 
     return get_fixed_message(signal_type)
 
-
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
@@ -178,7 +173,6 @@ def get_signal(selected_instrument):
         return jsonify({"instrument": selected_instrument, "signal": signal})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000)
