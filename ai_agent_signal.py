@@ -14,11 +14,9 @@ load_dotenv()
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-# ✅ Redis connection from Railway ENV
-redis_client = redis.StrictRedis(
-    host=os.getenv("REDIS_HOST"),
-    port=int(os.getenv("REDIS_PORT")),
-    password=os.getenv("REDIS_PASSWORD"),
+# ✅ Redis connection (Railway friendly)
+redis_client = redis.StrictRedis.from_url(
+    os.getenv("REDIS_URL"),
     decode_responses=True
 )
 
@@ -34,11 +32,10 @@ def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
 # ✅ Get Gold Price from Metals API
-
 def get_gold_price():
     url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         data = response.json()
     except Exception as e:
         print(f"❌ Error fetching Gold price: {e}")
@@ -53,7 +50,6 @@ def get_gold_price():
     return None
 
 # ✅ Trend Logic
-
 def detect_trend_direction(prices):
     if len(prices) < 3:
         return "neutral"
@@ -101,12 +97,11 @@ def get_fixed_message(signal_type):
     return messages.get(signal_type, "⚠️ Unable to determine signal.")
 
 # ✅ Generate Aggressive Signal
-
 def generate_trade_signal(instrument):
     now = time.time()
     redis_key = f"signal_cache:{instrument}"
 
-    # ✅ Check Redis first
+    # ✅ Check Redis cache
     cached = redis_client.hgetall(redis_key)
     if cached:
         timestamp = float(cached.get("timestamp", 0))
@@ -170,7 +165,7 @@ def generate_trade_signal(instrument):
         "price": price,
         "signal_type": signal_type
     })
-    redis_client.expire(redis_key, 120)  # 2 minutes TTL
+    redis_client.expire(redis_key, 120)
 
     return get_fixed_message(signal_type)
 
@@ -185,7 +180,7 @@ def get_signal(selected_instrument):
         print(f"❌ Error Processing {selected_instrument}: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ✅ Start Flask Server
+# ✅ Start Flask
 if __name__ == '__main__':
     print("🚀 AI Signal Server Running...")
     app.run(debug=True, host='0.0.0.0', port=5000)
