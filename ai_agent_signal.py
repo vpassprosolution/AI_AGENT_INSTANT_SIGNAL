@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import requests
+import yfinance as yf
 import numpy as np
 import pandas as pd
 import redis
@@ -14,10 +15,10 @@ load_dotenv()
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# ✅ Redis setup
+# ✅ Redis connection
 redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
-# ✅ Log setiap request
+# ✅ Log requests
 @app.before_request
 def log_request_info():
     logging.info(f"📥 GET {request.url}")
@@ -26,7 +27,7 @@ def log_request_info():
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-# ✅ Gold price dari MetalsAPI
+# ✅ GOLD from Metals API
 def get_gold_price():
     url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
     try:
@@ -39,20 +40,21 @@ def get_gold_price():
         print(f"❌ Error fetching Gold price: {e}")
     return None
 
-# ✅ Price history dari TwelveData
+# ✅ Get price data from TwelveData
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
         res = requests.get(url, timeout=10).json()
-        if "values" not in res: return None
+        if "values" not in res:
+            return None
         df = pd.DataFrame(res["values"])
         df["close"] = df["close"].astype(float)
-        return df[::-1]  # reverse order
+        return df[::-1]
     except Exception as e:
         print(f"❌ Error TwelveData {symbol}: {e}")
         return None
 
-# ✅ Indicator functions
+# ✅ Indicators
 def detect_trend_direction(prices):
     return (
         "bullish" if prices[-3] < prices[-2] < prices[-1]
@@ -77,7 +79,7 @@ def calculate_macd(prices):
 def calculate_bollinger_bands(prices, window=20):
     ma = pd.Series(prices).rolling(window).mean()
     std = pd.Series(prices).rolling(window).std()
-    return ma.iloc[-1] + 2*std.iloc[-1], ma.iloc[-1] - 2*std.iloc[-1]
+    return ma.iloc[-1] + 2 * std.iloc[-1], ma.iloc[-1] - 2 * std.iloc[-1]
 
 def detect_volume_spike(df):
     if 'volume' in df.columns:
@@ -93,21 +95,20 @@ def get_fixed_message(signal_type):
         "WEAK_SELL": "⚠️ SELL SIGNAL - Mild bearish shift forming. 🔸",
     }.get(signal_type, "⚠️ Unable to determine signal.")
 
-# ✅ Signal Generator
+# ✅ Main Logic
 def generate_trade_signal(instrument):
     now = time.time()
     redis_key = f"signal_cache:{instrument}"
-
     cached = redis_client.hgetall(redis_key)
     if cached and now - float(cached.get("timestamp", 0)) < 60:
         print(f"🔁 Cached Redis signal: {cached['signal_type']}")
         return get_fixed_message(cached["signal_type"])
 
+    # ✅ TwelveData symbols
     tw_symbols = {
         "BTC": "BTC/USD", "ETH": "ETH/USD",
         "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
-        "DJI": "US30/USD",  # ✅ Dow Jones
-        "IXIC": "NDX/USD"   # ✅ Nasdaq
+        "DJI": "DIA/USD", "IXIC": "QQQ/USD"
     }
 
     if instrument in ["XAU", "XAUUSD"]:
@@ -155,7 +156,7 @@ def generate_trade_signal(instrument):
 
     return get_fixed_message(signal_type)
 
-# ✅ API Endpoint
+# ✅ Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
