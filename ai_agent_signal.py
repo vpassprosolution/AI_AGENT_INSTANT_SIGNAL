@@ -27,7 +27,7 @@ def log_request_info():
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-# ✅ GOLD from Metals API
+
 # ✅ Get real candle for Gold from Finnhub (XAU/USD)
 def get_finnhub_gold_candles():
     redis_key = "candle:GOLD:M1"
@@ -49,6 +49,8 @@ def get_finnhub_gold_candles():
 
     try:
         res = requests.get(url, params=params, timeout=10).json()
+        print("🧪 Finnhub response:", res)  # <--- ADD THIS
+
         if "c" not in res or len(res["c"]) < 30:
             return None
 
@@ -65,6 +67,7 @@ def get_finnhub_gold_candles():
     except Exception as e:
         print(f"❌ Finnhub GOLD candle error: {e}")
         return None
+
 
 
 # ✅ Get data from TwelveData (1min x 30 candles)
