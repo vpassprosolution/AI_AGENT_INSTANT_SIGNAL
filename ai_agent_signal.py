@@ -38,7 +38,7 @@ def get_gold_candles_yahoo():
         return pd.DataFrame(json.loads(cached))
 
     try:
-        df = yf.download(tickers="XAUUSD=X", interval="1m", period="30m", progress=False)
+        df = yf.download(tickers="GC=F", interval="1m", period="30m", progress=False)
         if df is None or df.empty or len(df) < 30:
             return None
         df.reset_index(inplace=True)
@@ -46,7 +46,7 @@ def get_gold_candles_yahoo():
         df.rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close"}, inplace=True)
         result = df[["timestamp", "open", "high", "low", "close"]].to_dict(orient="records")
         redis_client.set(redis_key, json.dumps(result), ex=60)
-        print("✅ GOLD candles fetched from Yahoo")
+        print("✅ GOLD candles fetched from Yahoo (GC=F)")
         return df
     except Exception as e:
         print(f"❌ Error fetching GOLD from Yahoo: {e}")
