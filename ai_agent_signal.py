@@ -106,10 +106,11 @@ def generate_trade_signal(instrument):
 
     # ✅ TwelveData symbols
     tw_symbols = {
-        "BTC": "BTC/USD", "ETH": "ETH/USD",
-        "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
-        "DJI": "DIA/USD", "IXIC": "QQQ/USD"
-    }
+    "BTC": "BTC/USD", "ETH": "ETH/USD",
+    "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
+    "DJI": "DIA", "IXIC": "QQQ"
+}
+
 
     if instrument in ["XAU", "XAUUSD"]:
         price = get_gold_price()
