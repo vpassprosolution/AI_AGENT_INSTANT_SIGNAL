@@ -16,10 +16,8 @@ load_dotenv()
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# ✅ Redis connection
 redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
-# ✅ Log request
 @app.before_request
 def log_request_info():
     logging.info(f"📥 GET {request.url}")
@@ -29,23 +27,32 @@ def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
 
-# ✅ GOLD from Yahoo Finance (real-time 1m candles)
-def get_gold_price_from_yahoo():
+# ✅ Candle from Yahoo, replace last price with Metals API real-time
+def get_gold_candles_combined():
     try:
         df = yf.download("GC=F", interval="1m", period="2d", progress=False)
         if df.empty or "Close" not in df.columns:
-            print("❌ Gold data empty or missing 'Close'")
+            print("❌ Yahoo Gold candle empty")
             return None
         df = df.tail(120)
         df["close"] = df["Close"].astype(float)
-        print("✅ Gold candles from Yahoo downloaded (120 bars)")
-        return df
+
+        # Replace last candle with Metals price
+        url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
+        res = requests.get(url, timeout=10).json()
+        if "rates" in res and "USDXAU" in res["rates"]:
+            df.iloc[-1, df.columns.get_loc("close")] = round(res["rates"]["USDXAU"], 2)
+            print("✅ GOLD candle from Yahoo + real-time Metals price")
+            return df
+        else:
+            print("⚠️ Metals API failed, fallback to Yahoo candle only")
+            return df
     except Exception as e:
-        print(f"❌ Error fetching GOLD from Yahoo: {e}")
+        print(f"❌ Gold candle error: {e}")
         return None
 
 
-# ✅ Get data from TwelveData (for other assets)
+# ✅ For others: TwelveData
 def get_twelvedata_history(symbol):
     url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1min&outputsize=30&apikey={os.getenv('TWELVE_API_KEY')}"
     try:
@@ -118,12 +125,13 @@ def generate_trade_signal(instrument):
     }
 
     if instrument in ["XAU", "XAUUSD"]:
-        df = get_gold_price_from_yahoo()
+        df = get_gold_candles_combined()
         if df is None or len(df) < 30:
             return "⚠️ Failed to get GOLD data."
+        df["close"] = df["close"].astype(float)
         prices = df["close"].values
         price = round(prices[-1], 2)
-        volume_spike = True  # Yahoo has no volume
+        volume_spike = True
     elif instrument in tw_symbols:
         df = get_twelvedata_history(tw_symbols[instrument])
         if df is None or len(df) < 30:
@@ -163,7 +171,6 @@ def generate_trade_signal(instrument):
     return get_fixed_message(signal_type)
 
 
-# ✅ Endpoint
 @app.route('/get_signal/<string:selected_instrument>', methods=['GET'])
 def get_signal(selected_instrument):
     try:
@@ -172,6 +179,6 @@ def get_signal(selected_instrument):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ✅ Run
+
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000)
