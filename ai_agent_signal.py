@@ -38,9 +38,10 @@ def get_gold_candles_yahoo():
         return pd.DataFrame(json.loads(cached))
 
     try:
-        df = yf.download(tickers="GC=F", interval="1m", period="30m", progress=False)
+        df = yf.download(tickers="GC=F", interval="1m", period="1d", progress=False)
         if df is None or df.empty or len(df) < 30:
             return None
+        df = df.tail(30)
         df.reset_index(inplace=True)
         df["timestamp"] = df["Datetime"].astype(str)
         df.rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close"}, inplace=True)
@@ -51,6 +52,7 @@ def get_gold_candles_yahoo():
     except Exception as e:
         print(f"❌ Error fetching GOLD from Yahoo: {e}")
         return None
+
 
 
 # ✅ Get data from TwelveData (for other assets)
