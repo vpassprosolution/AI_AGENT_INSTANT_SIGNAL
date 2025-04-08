@@ -126,7 +126,7 @@ def generate_trade_signal():
 
     df = get_gold_m5_candles()
     if df is None or len(df) < 30:
-        return "⚠️ Failed to get data."
+        raise Exception("⚠️ Failed to get candle data")
 
     prices = df["close"].values
     rsi = calculate_rsi(prices).iloc[-1]
@@ -137,12 +137,10 @@ def generate_trade_signal():
     ma_trend = calculate_ma_cross(prices)
     ema200 = calculate_ema200(prices)
     volume_spike = detect_volume_spike(df)
-
     current_price = prices[-1]
 
     print(f"RSI: {rsi:.2f} | MACD: {macd:.2f} | BB: [{lower_bb:.2f}, {upper_bb:.2f}] | Trend: {trend} | MA20>50: {ma_trend} | EMA200: {ema200:.2f} | SNR: {snr} | Price: {current_price:.2f}")
 
-    # === Decision Tree ===
     if (
         snr == "support" and rsi < 40 and macd > macd_signal and trend == "bullish"
         and ma_trend == "bullish" and current_price > ema200 and volume_spike
@@ -174,7 +172,9 @@ def get_signal():
         signal = generate_trade_signal()
         return jsonify({"instrument": "XAUUSD", "signal": signal})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logging.error(f"❌ ERROR: {str(e)}")
+        return jsonify({"error": str(e)}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000)
