@@ -116,19 +116,24 @@ def generate_trade_signal():
     redis_key = "signal_cache:XAUUSD"
     cached = redis_client.hgetall(redis_key)
 
+    logging.info("📌 Checking Redis cache...")
     if cached:
         try:
             if now - float(cached.get("timestamp", 0)) < 60:
-                print(f"🔁 Cached Redis signal: {cached['signal_type']}")
+                logging.info(f"🔁 Using cached Redis signal: {cached['signal_type']}")
                 return get_fixed_message(cached["signal_type"])
-        except:
+        except Exception as e:
+            logging.warning(f"⚠️ Redis error: {e}")
             redis_client.delete(redis_key)
 
+    logging.info("📌 Fetching gold M5 candles...")
     df = get_gold_m5_candles()
     if df is None or len(df) < 30:
         raise Exception("⚠️ Failed to get candle data")
 
     prices = df["close"].values
+    logging.info(f"✅ Prices fetched, last close: {prices[-1]}")
+
     rsi = calculate_rsi(prices).iloc[-1]
     macd, macd_signal = calculate_macd(prices)
     upper_bb, lower_bb = calculate_bbands(prices)
@@ -139,7 +144,9 @@ def generate_trade_signal():
     volume_spike = detect_volume_spike(df)
     current_price = prices[-1]
 
-    print(f"RSI: {rsi:.2f} | MACD: {macd:.2f} | BB: [{lower_bb:.2f}, {upper_bb:.2f}] | Trend: {trend} | MA20>50: {ma_trend} | EMA200: {ema200:.2f} | SNR: {snr} | Price: {current_price:.2f}")
+    logging.info(f"📊 RSI: {rsi:.2f}, MACD: {macd:.2f}, Signal: {macd_signal:.2f}")
+    logging.info(f"📊 BB: [{lower_bb:.2f}, {upper_bb:.2f}], Trend: {trend}, SNR: {snr}")
+    logging.info(f"📊 MA Cross: {ma_trend}, EMA200: {ema200:.2f}, Volume Spike: {volume_spike}, Current Price: {current_price:.2f}")
 
     if (
         snr == "support" and rsi < 40 and macd > macd_signal and trend == "bullish"
@@ -164,6 +171,7 @@ def generate_trade_signal():
     })
     redis_client.expire(redis_key, 120)
 
+    logging.info(f"✅ FINAL SIGNAL: {signal_type}")
     return get_fixed_message(signal_type)
 
 @app.route('/get_signal', methods=['GET'])
