@@ -7,7 +7,7 @@ import pandas as pd
 import redis
 import yfinance as yf
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 
 load_dotenv()
