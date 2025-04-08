@@ -61,8 +61,8 @@ def get_m5_candles(instrument):
             symbol_map = {
                 "BTC": "BTC/USD",
                 "ETH": "ETH/USD",
-                "DJI": "DJI",
-                "IXIC": "IXIC",
+                "DJI": "DIA",
+                "IXIC": "QQQ",
                 "EURUSD": "EUR/USD",
                 "GBPUSD": "GBP/USD"
             }
