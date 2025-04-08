@@ -72,7 +72,7 @@ def get_m5_candles(instrument):
                 return None
 
             td_symbol = symbol_map[instrument]
-            url = f"https://api.twelvedata.com/time_series?symbol={td_symbol}&interval=5min&outputsize=120&apikey={TWELE_API_KEY}"
+            url = f"https://api.twelvedata.com/time_series?symbol={td_symbol}&interval=5min&outputsize=120&apikey={TWELVE_API_KEY}"
             res = requests.get(url, timeout=10).json()
 
             if "values" not in res:
