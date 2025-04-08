@@ -67,14 +67,6 @@ def get_twelvedata_history(symbol):
         return None
 
 
-# ✅ Indicators
-def detect_trend_direction(prices):
-    return (
-        "bullish" if prices[-3] < prices[-2] < prices[-1]
-        else "bearish" if prices[-3] > prices[-2] > prices[-1]
-        else "neutral"
-    )
-
 def calculate_rsi(prices, period=14):
     delta = pd.Series(prices).diff()
     gain = delta.clip(lower=0).rolling(window=period).mean()
@@ -106,18 +98,36 @@ def get_fixed_message(signal_type):
         "WEAK_BUY": "🟢 BUY NOW !! - Subtle bullish strength detected by Naomi Assist. Possible upside incoming.",
         "STRONG_SELL": "🔻 STRONG SELL NOW!! Naomi AI sees powerful bearish crash developing. High confidence short! ⚠️",
         "WEAK_SELL": "🟠 SELL NOW !! - Mild bearish movement detected. Momentum shifting lower.",
-    }.get(signal_type, "⚠️ Naomi AI unable to detect clear signal. Market is neutral.")
+        "NEUTRAL": "🤖 No clear signal at the moment. Naomi AI is observing the market for better clarity."
+    }.get(signal_type, "🤖 Naomi AI unable to detect signal.")
 
+# ✅ Improved trend detection (less strict)
+def detect_trend_direction(prices):
+    last = prices[-1]
+    avg = np.mean(prices[-5:])
+    return (
+        "bullish" if last > avg * 1.002 else
+        "bearish" if last < avg * 0.998 else
+        "neutral"
+    )
 
-# ✅ Main Logic
+# ✅ Main signal generator (FIXED)
 def generate_trade_signal(instrument):
     now = time.time()
     redis_key = f"signal_cache:{instrument}"
     cached = redis_client.hgetall(redis_key)
-    if cached and now - float(cached.get("timestamp", 0)) < 60:
-        print(f"🔁 Cached Redis signal: {cached['signal_type']}")
-        return get_fixed_message(cached["signal_type"])
 
+    # ✅ Use cache if fresh (under 60 sec) AND valid
+    if cached:
+        try:
+            if now - float(cached.get("timestamp", 0)) < 60 and cached["signal_type"] != "NEUTRAL":
+                print(f"🔁 Cached Redis signal: {cached['signal_type']}")
+                return get_fixed_message(cached["signal_type"])
+        except Exception as e:
+            print(f"⚠️ Redis cache broken: {e}")
+            redis_client.delete(redis_key)
+
+    # ✅ Instrument source logic
     tw_symbols = {
         "BTC": "BTC/USD", "ETH": "ETH/USD",
         "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
@@ -142,29 +152,32 @@ def generate_trade_signal(instrument):
     else:
         return f"⚠️ Invalid instrument: {instrument}"
 
+    # === Indicators
     trend = detect_trend_direction(prices)
     rsi_series = calculate_rsi(prices)
     rsi_value = rsi_series.iloc[-1] if not rsi_series.isna().all() else 50
     macd, signal = calculate_macd(prices)
     boll_upper, boll_lower = calculate_bollinger_bands(prices)
 
-    # ✅ Handle BBand NaN fallback
+    # ✅ Handle BB fallback
     if np.isnan(boll_upper) or np.isnan(boll_lower):
         boll_upper, boll_lower = price + 2, price - 2
 
     print(f"📊 {instrument} | Price: {price}, Trend: {trend}, RSI: {rsi_value:.2f}, MACD: {macd:.2f}, Signal: {signal:.2f}, BBands: [{boll_lower:.2f}, {boll_upper:.2f}], Volume Spike: {volume_spike}")
 
+    # ✅ Signal Decision Tree (Updated)
     if trend == "bullish" and rsi_value < 70 and macd > signal and price < boll_upper and volume_spike:
         signal_type = "STRONG_BUY"
     elif trend == "bearish" and rsi_value > 30 and macd < signal and price > boll_lower and volume_spike:
         signal_type = "STRONG_SELL"
-    elif trend == "bullish" and rsi_value < 70:
+    elif trend == "bullish" and rsi_value < 70 and macd > signal:
         signal_type = "WEAK_BUY"
-    elif trend == "bearish" and rsi_value > 30:
+    elif trend == "bearish" and rsi_value > 30 and macd < signal:
         signal_type = "WEAK_SELL"
     else:
-        signal_type = "WEAK_BUY" if rsi_value < 50 else "WEAK_SELL"
+        signal_type = "NEUTRAL"
 
+    # ✅ Save to Redis
     redis_client.hset(redis_key, mapping={
         "timestamp": now,
         "price": price,
@@ -173,6 +186,12 @@ def generate_trade_signal(instrument):
     redis_client.expire(redis_key, 120)
 
     return get_fixed_message(signal_type)
+
+
+@app.route('/reset_cache/<instrument>')
+def reset_cache(instrument):
+    redis_client.delete(f"signal_cache:{instrument}")
+    return jsonify({"message": f"✅ Cache cleared for {instrument}"})
 
 
 # ✅ API Endpoint
