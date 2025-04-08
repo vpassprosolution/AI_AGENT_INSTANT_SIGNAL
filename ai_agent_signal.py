@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
-TWELE_API_KEY = os.getenv("TWELE_API_KEY")
+TWELVE_API_KEY = os.getenv("TWELVE_API_KEY")
 
 @app.before_request
 def log_request_info():
