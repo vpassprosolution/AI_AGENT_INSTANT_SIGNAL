@@ -183,16 +183,15 @@ def generate_trade_signal():
     logging.info(f"✅ FINAL SIGNAL: {signal_type}")
     return get_fixed_message(signal_type)
 
-@app.route('/get_signal/<symbol>', methods=['GET'])
-def get_signal(symbol):
+# === ENDPOINT ===
+@app.route('/get_signal/<string:instrument>', methods=['GET'])
+def get_signal(instrument):
     try:
-        if symbol != "XAUUSD":
-            return jsonify({"error": f"Only XAUUSD supported, not {symbol}"}), 200
-        signal = generate_trade_signal()
-        return jsonify({"instrument": symbol, "signal": signal})
+        signal = generate_trade_signal(instrument.upper())
+        return jsonify({"instrument": instrument.upper(), "signal": signal})
     except Exception as e:
-        logging.error(f"❌ ERROR: {str(e)}")
-        return jsonify({"error": str(e)}), 200
+        return jsonify({"error": str(e)}), 500
+
 
 
 
