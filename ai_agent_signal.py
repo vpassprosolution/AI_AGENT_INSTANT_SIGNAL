@@ -5,7 +5,6 @@ import requests
 import numpy as np
 import pandas as pd
 import redis
-import yfinance as yf
 
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
@@ -17,46 +16,81 @@ logging.basicConfig(level=logging.INFO)
 
 redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
+TWELE_API_KEY = os.getenv("TWELE_API_KEY")
+
 @app.before_request
 def log_request_info():
     logging.info(f"📅 GET {request.url}")
+
 
 @app.route('/')
 def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
-# === Get M5 Candle Data ===
-def get_gold_m5_candles():
+
+# === GET M5 DATA ===
+def get_m5_candles(instrument):
     try:
-        logging.info("⏳ Downloading M5 candles from Yahoo Finance...")
-        df = yf.download("GC=F", interval="5m", period="2d", progress=False)
-        if df.empty or "Close" not in df.columns:
-            logging.warning("❌ Yahoo M5 candle empty or missing Close column")
-            return None
+        if instrument == "XAUUSD":
+            logging.info("⏳ Downloading GOLD candles from Yahoo Finance...")
+            import yfinance as yf
+            df = yf.download("GC=F", interval="5m", period="2d", progress=False)
 
-        df = df.tail(120)
-        df["close"] = df["Close"].astype(float)
+            if df.empty or "Close" not in df.columns:
+                logging.warning("❌ Yahoo M5 candle empty or missing Close column")
+                return None
 
-        # === Replace last candle with Metals API real price
-        logging.info("🌐 Fetching Metals API real price...")
-        metals_url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
-        res = requests.get(metals_url, timeout=10).json()
-        logging.info(f"🔍 Metals API response: {res}")
+            df = df.tail(120)
+            df["close"] = df["Close"].astype(float)
 
-        if "rates" in res and "USDXAU" in res["rates"]:
-            real_price = round(res["rates"]["USDXAU"], 2)
-            df.iloc[-1, df.columns.get_loc("close")] = real_price
-            logging.info(f"✅ Real price override applied: {real_price}")
+            # Override with real price from Metals API
+            logging.info("🌐 Fetching real price from MetalsAPI...")
+            url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
+            res = requests.get(url, timeout=10).json()
+            logging.info(f"🔍 Metals API response: {res}")
+
+            if "rates" in res and "USDXAU" in res["rates"]:
+                real_price = round(res["rates"]["USDXAU"], 2)
+                df.iloc[-1, df.columns.get_loc("close")] = real_price
+                logging.info(f"✅ Real price override applied: {real_price}")
+
+            return df
+
         else:
-            logging.warning("⚠️ Metals API missing 'USDXAU' rate")
+            logging.info(f"⏳ Fetching M5 candles for {instrument} from TwelveData...")
+            symbol_map = {
+                "BTC": "BTC/USD",
+                "ETH": "ETH/USD",
+                "DJI": "DJI",
+                "IXIC": "IXIC",
+                "EURUSD": "EUR/USD",
+                "GBPUSD": "GBP/USD"
+            }
 
-        return df
+            if instrument not in symbol_map:
+                logging.warning(f"❌ Unsupported instrument: {instrument}")
+                return None
+
+            td_symbol = symbol_map[instrument]
+            url = f"https://api.twelvedata.com/time_series?symbol={td_symbol}&interval=5min&outputsize=120&apikey={TWELE_API_KEY}"
+            res = requests.get(url, timeout=10).json()
+
+            if "values" not in res:
+                logging.warning(f"❌ Failed to fetch data for {instrument} from TwelveData: {res}")
+                return None
+
+            df = pd.DataFrame(res["values"])
+            df["datetime"] = pd.to_datetime(df["datetime"])
+            df = df.sort_values("datetime")
+            df["close"] = df["close"].astype(float)
+            return df
+
     except Exception as e:
-        logging.error(f"❌ Exception in get_gold_m5_candles: {e}")
+        logging.error(f"❌ Error fetching M5 candles for {instrument}: {e}")
         return None
 
 
-# === Indicators ===
+# === INDICATORS ===
 def calculate_rsi(prices, period=14):
     delta = pd.Series(prices).diff()
     gain = delta.clip(lower=0).rolling(window=period).mean()
@@ -102,15 +136,16 @@ def calculate_ma_cross(prices):
     return "bullish" if ma20 > ma50 else "bearish"
 
 def detect_volume_spike(df):
-    if 'Volume' in df.columns:
-        vol = df['Volume'].astype(float).tail(4).values
+    if 'volume' in df.columns:
+        vol = df['volume'].astype(float).tail(4).values
         return vol[-1] > np.mean(vol[:-1]) * 1.3
     return False
 
 def calculate_ema200(prices):
     return pd.Series(prices).ewm(span=200).mean().iloc[-1]
 
-# === Message ===
+
+# === MESSAGE ===
 def get_fixed_message(signal_type):
     return {
         "STRONG_BUY": "🔥 *STRONG BUY NOW!!* Naomi AI detects powerful bullish confirmation from all indicators. SNR support zone + Trend + MA Cross + Volume confirmed. Ride the wave upward! 🚀",
@@ -119,30 +154,26 @@ def get_fixed_message(signal_type):
         "WEAK_SELL": "🔘 *SELL SIGNAL DETECTED* - Weak bearish signal forming. Partial confirmation. Monitor further."
     }.get(signal_type, "🤖 No signal available.")
 
-# === Signal Engine ===
-def generate_trade_signal():
+
+# === SIGNAL ENGINE ===
+def generate_trade_signal(instrument):
     now = time.time()
-    redis_key = "signal_cache:XAUUSD"
+    redis_key = f"signal_cache:{instrument}"
     cached = redis_client.hgetall(redis_key)
 
-    logging.info("📌 Checking Redis cache...")
     if cached:
         try:
             if now - float(cached.get("timestamp", 0)) < 60:
-                logging.info(f"🔁 Using cached Redis signal: {cached['signal_type']}")
+                logging.info(f"🔁 Cached signal for {instrument}: {cached['signal_type']}")
                 return get_fixed_message(cached["signal_type"])
-        except Exception as e:
-            logging.warning(f"⚠️ Redis error: {e}")
+        except Exception:
             redis_client.delete(redis_key)
 
-    logging.info("📌 Fetching gold M5 candles...")
-    df = get_gold_m5_candles()
+    df = get_m5_candles(instrument)
     if df is None or len(df) < 30:
-        raise Exception("⚠️ Failed to get candle data")
+        raise Exception(f"⚠️ Failed to get candle data for {instrument}")
 
     prices = df["close"].values
-    logging.info(f"✅ Prices fetched, last close: {prices[-1]}")
-
     rsi = calculate_rsi(prices).iloc[-1]
     macd, macd_signal = calculate_macd(prices)
     upper_bb, lower_bb = calculate_bbands(prices)
@@ -153,9 +184,7 @@ def generate_trade_signal():
     volume_spike = detect_volume_spike(df)
     current_price = prices[-1]
 
-    logging.info(f"📊 RSI: {rsi:.2f}, MACD: {macd:.2f}, Signal: {macd_signal:.2f}")
-    logging.info(f"📊 BB: [{lower_bb:.2f}, {upper_bb:.2f}], Trend: {trend}, SNR: {snr}")
-    logging.info(f"📊 MA Cross: {ma_trend}, EMA200: {ema200:.2f}, Volume Spike: {volume_spike}, Current Price: {current_price:.2f}")
+    logging.info(f"📊 {instrument} | RSI: {rsi:.2f}, MACD: {macd:.2f}, Signal: {macd_signal:.2f}, Trend: {trend}, SNR: {snr}, MA: {ma_trend}, EMA200: {ema200:.2f}, Volume: {volume_spike}, Price: {current_price:.2f}")
 
     if (
         snr == "support" and rsi < 40 and macd > macd_signal and trend == "bullish"
@@ -180,19 +209,18 @@ def generate_trade_signal():
     })
     redis_client.expire(redis_key, 120)
 
-    logging.info(f"✅ FINAL SIGNAL: {signal_type}")
     return get_fixed_message(signal_type)
 
-# === ENDPOINT ===
+
+# === API ROUTE ===
 @app.route('/get_signal/<string:instrument>', methods=['GET'])
 def get_signal(instrument):
     try:
         signal = generate_trade_signal(instrument.upper())
         return jsonify({"instrument": instrument.upper(), "signal": signal})
     except Exception as e:
+        logging.error(f"❌ ERROR: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
 
 
 if __name__ == '__main__':
