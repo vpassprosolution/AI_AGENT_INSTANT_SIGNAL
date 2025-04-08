@@ -28,24 +28,33 @@ def home():
 # === Get M5 Candle Data ===
 def get_gold_m5_candles():
     try:
+        logging.info("⏳ Downloading M5 candles from Yahoo Finance...")
         df = yf.download("GC=F", interval="5m", period="2d", progress=False)
         if df.empty or "Close" not in df.columns:
-            print("❌ Yahoo M5 candle empty")
+            logging.warning("❌ Yahoo M5 candle empty or missing Close column")
             return None
+
         df = df.tail(120)
         df["close"] = df["Close"].astype(float)
 
         # === Replace last candle with Metals API real price
+        logging.info("🌐 Fetching Metals API real price...")
         metals_url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
         res = requests.get(metals_url, timeout=10).json()
+        logging.info(f"🔍 Metals API response: {res}")
+
         if "rates" in res and "USDXAU" in res["rates"]:
             real_price = round(res["rates"]["USDXAU"], 2)
             df.iloc[-1, df.columns.get_loc("close")] = real_price
-            print(f"✅ Real price override: {real_price}")
+            logging.info(f"✅ Real price override applied: {real_price}")
+        else:
+            logging.warning("⚠️ Metals API missing 'USDXAU' rate")
+
         return df
     except Exception as e:
-        print(f"❌ Error getting M5 candle: {e}")
+        logging.error(f"❌ Exception in get_gold_m5_candles: {e}")
         return None
+
 
 # === Indicators ===
 def calculate_rsi(prices, period=14):
