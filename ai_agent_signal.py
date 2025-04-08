@@ -26,24 +26,46 @@ def home():
     return jsonify({"message": "AI Agent Instant Signal API is running!"})
 
 
-# === Get M5 Candle Data ===
-def get_gold_m5_candles():
+# === CANDLE SOURCES ===
+def get_gold_candles():
     try:
         df = yf.download("GC=F", interval="5m", period="2d", progress=False)
         if df.empty or "Close" not in df.columns:
-            print("❌ Yahoo M5 candle empty")
             return None
         df = df.tail(120)
         df["close"] = df["Close"].astype(float)
+
+        # Override last candle with Metals API
+        url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
+        res = requests.get(url, timeout=10).json()
+        if "rates" in res and "USDXAU" in res["rates"]:
+            real_price = round(res["rates"]["USDXAU"], 2)
+            df.iloc[-1, df.columns.get_loc("close")] = real_price
+            print(f"✅ GOLD real price override: {real_price}")
+        else:
+            print("⚠️ Metals API failed")
         return df
-    except Exception as e:
-        print(f"❌ Error getting M5 candle: {e}")
+    except:
         return None
 
+def get_twelvedata_candles(symbol):
+    try:
+        url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval=5min&outputsize=120&apikey={os.getenv('TWELVE_API_KEY')}"
+        res = requests.get(url, timeout=10).json()
+        if "values" not in res:
+            return None
+        df = pd.DataFrame(res["values"])
+        df["close"] = df["close"].astype(float)
+        return df[::-1]  # reverse order
+    except:
+        return None
+
+
+# === INDICATORS ===
 def calculate_rsi(prices, period=14):
     delta = pd.Series(prices).diff()
-    gain = delta.clip(lower=0).rolling(window=period).mean()
-    loss = (-delta.clip(upper=0)).rolling(window=period).mean()
+    gain = delta.clip(lower=0).rolling(period).mean()
+    loss = (-delta.clip(upper=0)).rolling(period).mean()
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
@@ -55,35 +77,35 @@ def calculate_macd(prices):
     return macd_line.iloc[-1], signal_line.iloc[-1]
 
 def detect_trend(prices):
-    return (
-        "bullish" if prices[-3] < prices[-2] < prices[-1]
-        else "bearish" if prices[-3] > prices[-2] > prices[-1]
-        else "neutral"
-    )
+    return "bullish" if prices[-3] < prices[-2] < prices[-1] else \
+           "bearish" if prices[-3] > prices[-2] > prices[-1] else "neutral"
 
 def detect_snr(prices, sensitivity=0.003):
-    mean_price = np.mean(prices[-20:])
-    upper = mean_price * (1 + sensitivity)
-    lower = mean_price * (1 - sensitivity)
-    current = prices[-1]
-    if current >= upper:
+    mean = np.mean(prices[-20:])
+    upper = mean * (1 + sensitivity)
+    lower = mean * (1 - sensitivity)
+    price = prices[-1]
+    if price >= upper:
         return "resistance"
-    elif current <= lower:
+    elif price <= lower:
         return "support"
     return "middle"
 
+
+# === FIXED MESSAGE ===
 def get_fixed_message(signal_type):
     return {
-        "STRONG_BUY": "🔥 *STRONG BUY NOW!!* Naomi AI detects high-conviction bullish explosion forming at key support zone. Momentum, trend, and indicators are perfectly aligned. Ride the wave upward with confidence. 🚀",
-        "WEAK_BUY": "🟢 *BUY SIGNAL DETECTED* - Bullish indicators align but trend is still forming. Naomi AI suggests a potential upside. Monitor closely for entry confirmation.",
-        "STRONG_SELL": "🔻 *STRONG SELL NOW!!* Naomi AI sees heavy bearish pressure forming near resistance. Market is weakening sharply — execute with high conviction. ⚠️",
-        "WEAK_SELL": "🟠 *SELL SIGNAL DETECTED* - Early signs of bearish reversal emerging. Naomi AI suggests caution — consider short if momentum confirms.",
+        "STRONG_BUY": "🔥 *STRONG BUY NOW!!* Naomi AI detects high-conviction bullish explosion forming at key support zone. Ride the wave upward with confidence 🚀",
+        "WEAK_BUY": "🟢 *BUY SIGNAL DETECTED* - Bullish indicators align. Potential upside forming.",
+        "STRONG_SELL": "🔻 *STRONG SELL NOW!!* Naomi AI detects major bearish crash forming near resistance. Execute confidently ⚠️",
+        "WEAK_SELL": "🟠 *SELL SIGNAL DETECTED* - Early signs of bearish pressure emerging. Be cautious and watch momentum closely.",
     }.get(signal_type, "🤖 No signal available.")
 
-# === MAIN SIGNAL GENERATOR ===
-def generate_trade_signal():
+
+# === GENERATE SIGNAL ===
+def generate_trade_signal(instrument):
     now = time.time()
-    redis_key = "signal_cache:XAUUSD"
+    redis_key = f"signal_cache:{instrument}"
     cached = redis_client.hgetall(redis_key)
 
     if cached:
@@ -94,19 +116,21 @@ def generate_trade_signal():
         except:
             redis_client.delete(redis_key)
 
-    df = get_gold_m5_candles()
+    # ✅ Get Candle Data
+    if instrument == "XAUUSD":
+        df = get_gold_candles()
+    else:
+        mapping = {
+            "BTC": "BTC/USD", "ETH": "ETH/USD",
+            "EURUSD": "EUR/USD", "GBPUSD": "GBP/USD",
+            "DJI": "DIA", "IXIC": "QQQ"
+        }
+        if instrument not in mapping:
+            return f"⚠️ Invalid instrument: {instrument}"
+        df = get_twelvedata_candles(mapping[instrument])
+
     if df is None or len(df) < 30:
         return "⚠️ Failed to get data."
-
-    # === Replace last price with Metals API
-    try:
-        metals_url = f"https://metals-api.com/api/latest?access_key={os.getenv('METALS_API_KEY')}&base=USD&symbols=XAU"
-        res = requests.get(metals_url, timeout=10).json()
-        real_price = round(res["rates"]["USDXAU"], 2)
-        df.iloc[-1, df.columns.get_loc("close")] = real_price
-        print(f"✅ Real price override: {real_price}")
-    except:
-        print("⚠️ Failed to get Metals API price")
 
     prices = df["close"].values
     rsi = calculate_rsi(prices).iloc[-1]
@@ -114,9 +138,9 @@ def generate_trade_signal():
     trend = detect_trend(prices)
     snr = detect_snr(prices)
 
-    print(f"RSI: {rsi:.2f} | MACD: {macd:.2f} | Signal: {signal:.2f} | Trend: {trend} | SNR: {snr}")
+    print(f"{instrument} | RSI: {rsi:.2f} | MACD: {macd:.2f} | Signal: {signal:.2f} | Trend: {trend} | SNR: {snr}")
 
-    # === DECISION TREE ===
+    # ✅ Decision Tree
     if snr == "support" and rsi < 40 and macd > signal and trend == "bullish":
         signal_type = "STRONG_BUY"
     elif snr == "resistance" and rsi > 60 and macd < signal and trend == "bearish":
@@ -126,7 +150,7 @@ def generate_trade_signal():
     elif trend == "bearish" and macd < signal:
         signal_type = "WEAK_SELL"
     else:
-        signal_type = "WEAK_BUY" if rsi < 50 else "WEAK_SELL"  # Default fallback
+        signal_type = "WEAK_BUY" if rsi < 50 else "WEAK_SELL"
 
     redis_client.hset(redis_key, mapping={
         "timestamp": now,
@@ -137,12 +161,12 @@ def generate_trade_signal():
     return get_fixed_message(signal_type)
 
 
-# === API ENDPOINT ===
-@app.route('/get_signal', methods=['GET'])
-def get_signal():
+# === ENDPOINT ===
+@app.route('/get_signal/<string:instrument>', methods=['GET'])
+def get_signal(instrument):
     try:
-        signal = generate_trade_signal()
-        return jsonify({"instrument": "XAUUSD", "signal": signal})
+        signal = generate_trade_signal(instrument.upper())
+        return jsonify({"instrument": instrument.upper(), "signal": signal})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
